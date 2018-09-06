@@ -487,3 +487,70 @@ int32 CFE_SB_SetMsgTime(CFE_SB_MsgPtr_t MsgPtr, CFE_TIME_SysTime_t NewTime)
     return Result;
 
 }/* end CFE_SB_SetMsgTime */
+
+/******************************************************************************
+**  Function:  CFE_SB_GetCmdCode()
+**
+**  Purpose:
+**    Get the opcode field of message.
+**
+**  Arguments:
+**    MsgPtr - Pointer to a CFE_SB_Msg_t
+**
+**  Return:
+**    CmdCode from the message (CCSDS Function Code)
+*/
+uint16 CFE_SB_GetCmdCode(CFE_SB_MsgPtr_t MsgPtr)
+{
+#ifdef MESSAGE_FORMAT_IS_CCSDS
+
+    CFE_SB_CmdHdr_t     *CmdHdrPtr;
+
+    /* if msg type is telemetry or there is no secondary hdr, return 0 */
+    if((CCSDS_RD_TYPE(MsgPtr->Hdr) == CCSDS_TLM)||(CCSDS_RD_SHDR(MsgPtr->Hdr) == 0)){
+        return 0;
+    }/* end if */
+
+    /* Cast the input pointer to a Cmd Msg pointer */
+    CmdHdrPtr = (CFE_SB_CmdHdr_t *)MsgPtr;
+
+    return CCSDS_RD_FC(CmdHdrPtr->Sec);
+
+#endif
+}/* end CFE_SB_GetCmdCode */
+
+/******************************************************************************
+**  Function:  CFE_SB_SetCmdCode()
+**
+**  Purpose:
+**    Set the opcode field of message.
+**
+**  Arguments:
+**    MsgPtr - Pointer to a CFE_SB_Msg_t
+**    CmdCode - Command code for the message (CCSDS Function Code)
+**
+**  Return:
+**    (none)
+*/
+int32 CFE_SB_SetCmdCode(CFE_SB_MsgPtr_t MsgPtr,
+                      uint16 CmdCode)
+{
+#ifdef MESSAGE_FORMAT_IS_CCSDS
+
+    CFE_SB_CmdHdr_t     *CmdHdrPtr;
+
+    /* if msg type is telemetry or there is no secondary hdr... */
+    if((CCSDS_RD_TYPE(MsgPtr->Hdr) == CCSDS_TLM)||(CCSDS_RD_SHDR(MsgPtr->Hdr) == 0)){
+        return CFE_SB_WRONG_MSG_TYPE;
+    }/* end if */
+
+    /* Cast the input pointer to a Cmd Msg pointer */
+    CmdHdrPtr = (CFE_SB_CmdHdr_t *)MsgPtr;
+
+    CCSDS_WR_FC(CmdHdrPtr->Sec,CmdCode);
+
+    return CFE_SUCCESS;
+
+#endif
+
+}/* end CFE_SB_SetCmdCode */
