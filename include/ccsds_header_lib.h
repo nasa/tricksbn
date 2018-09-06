@@ -30,11 +30,6 @@
 #define MESSAGE_FORMAT_IS_CCSDS_VER_2
 // #undef MESSAGE_FORMAT_IS_CCSDS_VER_2
 
-/* 
-** The maxium length allowed for a object (task,queue....) name 
-*/
-#define OS_MAX_API_NAME     30
-
 /**
 **  \cfemissioncfg Packet Timestamp Format Selection
 **
