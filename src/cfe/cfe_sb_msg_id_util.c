@@ -554,3 +554,200 @@ int32 CFE_SB_SetCmdCode(CFE_SB_MsgPtr_t MsgPtr,
 #endif
 
 }/* end CFE_SB_SetCmdCode */
+
+/******************************************************************************
+**  Function:  CFE_SB_MsgHdrSize()
+**
+**  Purpose:
+**    Get the size of a message header.
+**
+**  Arguments:
+**    MsgPtr - Pointer to a SB message 
+**
+**  Return:
+**     Size of Message Header.
+*/
+static uint16 CFE_SB_MsgHdrSize(CFE_SB_MsgPtr_t MsgPtr)
+{
+    uint16 size;
+
+#ifdef MESSAGE_FORMAT_IS_CCSDS
+
+    CCSDS_PriHdr_t  *HdrPtr;
+
+    HdrPtr = (CCSDS_PriHdr_t *) MsgPtr;
+
+    /* if secondary hdr is not present... */
+    /* Since all cFE messages must have a secondary hdr this check is not needed */
+    if(CCSDS_RD_SHDR(*HdrPtr) == 0){
+        size = sizeof(CCSDS_PriHdr_t);
+
+    }else if(CCSDS_RD_TYPE(*HdrPtr) == CCSDS_CMD){
+
+        size = CFE_SB_CMD_HDR_SIZE;
+
+    }else{
+
+        size = CFE_SB_TLM_HDR_SIZE;
+  
+    }
+
+   return size;
+
+#endif
+
+}/* end CFE_SB_MsgHdrSize */
+
+/******************************************************************************
+**  Function:  CFE_SB_GetUserData()
+**
+**  Purpose:
+**    Get a pointer to the user data portion of a message.
+**
+**  Arguments:
+**    MsgPtr - Pointer to a CFE_SB_Msg_t
+**
+**  Return:
+**    Pointer to the first byte after the headers
+*/
+void *CFE_SB_GetUserData(CFE_SB_MsgPtr_t MsgPtr)
+{
+#ifdef MESSAGE_FORMAT_IS_CCSDS
+    uint8           *BytePtr;
+    uint16          HdrSize;
+
+    BytePtr = (uint8 *)MsgPtr;
+    HdrSize = CFE_SB_MsgHdrSize(MsgPtr);
+
+    return (BytePtr + HdrSize);
+#endif
+}/* end CFE_SB_GetUserData */
+
+/******************************************************************************
+**  Function:  CFE_SB_GetUserDataLength()
+**
+**  Purpose:
+**    Get the length of the user data of a message (total size - hdrs).
+**
+** Assumptions, External Events, and Notes:
+**    Caller has already initialized the message header
+**
+**  Arguments:
+**    MsgPtr - Pointer to a CFE_SB_Msg_t
+**
+**  Return:
+**    Size of the message minus the headers
+*/
+uint16 CFE_SB_GetUserDataLength(CFE_SB_MsgPtr_t MsgPtr)
+{
+#ifdef MESSAGE_FORMAT_IS_CCSDS
+    uint16 TotalMsgSize;
+    uint16 HdrSize;
+
+    TotalMsgSize = CFE_SB_GetTotalMsgLength(MsgPtr);
+    HdrSize = CFE_SB_MsgHdrSize(MsgPtr);
+
+    return (TotalMsgSize - HdrSize);
+#endif
+}/* end CFE_SB_GetUserDataLength */
+
+/******************************************************************************
+**  Function:  CFE_SB_SetUserDataLength()
+**
+**  Purpose:
+**    Set the length field in the primary header.
+**    Given the user data length add the length of the secondary header.
+**
+** Assumptions, External Events, and Notes:
+**    Caller has already initialized the message header
+**
+**  Arguments:
+**    MsgPtr     - Pointer to a CFE_SB_Msg_t
+**    DataLength - Length of the user data
+**
+**  Return:
+**    (none)
+*/
+void CFE_SB_SetUserDataLength(CFE_SB_MsgPtr_t MsgPtr, uint16 DataLength)
+{
+#ifdef MESSAGE_FORMAT_IS_CCSDS
+
+    uint32 TotalMsgSize, HdrSize;
+
+    HdrSize = CFE_SB_MsgHdrSize(MsgPtr);
+    TotalMsgSize = HdrSize + DataLength;
+    CCSDS_WR_LEN(MsgPtr->Hdr,TotalMsgSize);
+
+#endif
+}/* end CFE_SB_SetUserDataLength */
+
+/******************************************************************************
+**  Function:  CFE_SB_GetTotalMsgLength()
+**
+**  Purpose:
+**    Get the total length of the message which includes the secondary header
+**    and the user data field.
+**    Does not include the Primary header.
+**
+**  Arguments:
+**    MsgPtr - Pointer to a CFE_SB_Msg_t
+**
+**  Return:
+**    Total Length of the message
+*/
+uint16 CFE_SB_GetTotalMsgLength(CFE_SB_MsgPtr_t MsgPtr)
+{
+#ifdef MESSAGE_FORMAT_IS_CCSDS
+
+    return CCSDS_RD_LEN(MsgPtr->Hdr);
+
+#endif
+}/* end CFE_SB_GetTotalMsgLength */
+
+/******************************************************************************
+**  Function:  CFE_SB_SetTotalMsgLength()
+**
+**  Purpose:
+**    Set the length field, given the total length of the message.
+**    Includes both the secondary header and the user data field.
+**    Does not include the Primary header.
+**
+**  Arguments:
+**    MsgPtr      - Pointer to a CFE_SB_Msg_t
+**    TotalLength - Total Length of the message
+**
+**  Return:
+**    (none)
+*/
+void CFE_SB_SetTotalMsgLength(CFE_SB_MsgPtr_t MsgPtr,uint16 TotalLength)
+{
+#ifdef MESSAGE_FORMAT_IS_CCSDS
+
+    CCSDS_WR_LEN(MsgPtr->Hdr,TotalLength);
+
+#endif
+}/* end CFE_SB_SetTotalMsgLength */
+
+/******************************************************************************
+**  Function:  CFE_SB_TimeStampMsg()
+**
+**  Purpose:
+**    Set the time field to the current time.
+**
+**  Arguments:
+**    MsgPtr - Pointer to a CFE_SB_Msg_t
+**
+**  Return:
+**    (none)
+*/
+void CFE_SB_TimeStampMsg(CFE_SB_MsgPtr_t MsgPtr, CFE_TIME_SysTime_t Time)
+{
+    CFE_SB_SetMsgTime(MsgPtr,Time);
+
+}/* end CFE_SB_TimeStampMsg */
+
+
+
+
+
+

@@ -492,7 +492,7 @@ int32 CFE_SB_SetMsgTime(CFE_SB_MsgPtr_t MsgPtr,
 ** \sa #CFE_SB_SetMsgId, #CFE_SB_SetUserDataLength, #CFE_SB_SetTotalMsgLength,
 **     #CFE_SB_SetMsgTime, #CFE_SB_SetCmdCode, #CFE_SB_InitMsg 
 **/
-void CFE_SB_TimeStampMsg(CFE_SB_MsgPtr_t MsgPtr);
+void CFE_SB_TimeStampMsg(CFE_SB_MsgPtr_t MsgPtr, CFE_TIME_SysTime_t Time);
 
 /*****************************************************************************/
 /** 
