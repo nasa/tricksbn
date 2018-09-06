@@ -21,7 +21,7 @@
 ** Include Files
 */
 
-#include "common_types.h"
+#include "osal/common_types.h"
 
 /* Macro to convert 16/32 bit types from platform "endianness" to Big Endian */
 #ifdef SOFTWARE_BIG_BIT_ORDER

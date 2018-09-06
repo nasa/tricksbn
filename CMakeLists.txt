@@ -8,8 +8,6 @@ find_package(Threads REQUIRED)
 set(CCSDS_HEADER_LIB_TEST_INC
     ${GTEST_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/cfe
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/osal
 )
 
 set(CCSDS_HEADER_LIB_TEST_SRC

@@ -27,7 +27,7 @@
 /*
 ** Includes
 */
-#include "common_types.h"
+#include "osal/common_types.h"
 
 /**
 **      For MESSAGE_FORMAT_IS_CCSDS_VER_2 the default layout of the message id is:
@@ -57,14 +57,17 @@
  * Mission defined bit used to indicate message is a command type. A 0 in this bit position indicates 
  * a telemetry message type. This bit is included in the message id.
  */
-#define CFE_SB_APID_COMPONENT          0x000001FF  /* 0-8(9) bits for Pri Hdr APID */
-#define CFE_SB_APID_OFFSET                      0
-#define CFE_SB_TYPE_COMPONENT          0x00008000  /* 1 Cmd/Tlm Bit (bit #15) */
-#define CFE_SB_TYPE_OFFSET                     15
-#define CFE_SB_SUBSYS_COMPONENT        0x00007E00  /* bits 9-14(6) bits for APID Subsystem ID */
-#define CFE_SB_SUBSYS_OFFSET                    9
-#define CFE_SB_SYSTEM_COMPONENT        0x00000000
-#define CFE_SB_SYSTEM_OFFSET                   16
+
+// Left these defines here for posterity - for this lib, they are defined by user in ccsds_header_lib.h
+
+// #define CFE_SB_APID_COMPONENT          0x000001FF  /* 0-8(9) bits for Pri Hdr APID */
+// #define CFE_SB_APID_OFFSET                      0
+// #define CFE_SB_TYPE_COMPONENT          0x00008000  /* 1 Cmd/Tlm Bit (bit #15) */
+// #define CFE_SB_TYPE_OFFSET                     15
+// #define CFE_SB_SUBSYS_COMPONENT        0x00007E00  /* bits 9-14(6) bits for APID Subsystem ID */
+// #define CFE_SB_SUBSYS_OFFSET                    9
+// #define CFE_SB_SYSTEM_COMPONENT        0x00000000
+// #define CFE_SB_SYSTEM_OFFSET                   16
 
 /* 
  * Mission defined macros to extract message id fields from the  primary and secondary headers

@@ -23,9 +23,9 @@
 /*
 ** Includes
 */
-#include "cfe_error.h"
-#include "common_types.h"
-#include "ccsds.h"
+#include "cfe/cfe_error.h"
+#include "osal/common_types.h"
+#include "cfe/ccsds.h"
 
 /*
 ** Defines

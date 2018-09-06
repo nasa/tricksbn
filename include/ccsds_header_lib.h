@@ -46,14 +46,30 @@
 */
 #define CFE_MISSION_SB_PACKET_TIME_FORMAT  CFE_MISSION_SB_TIME_32_16_SUBS
 
+/* 
+ * Mission defined bit used to indicate message is a command type. A 0 in this bit position indicates 
+ * a telemetry message type. This bit is included in the message id.
+ */
+
+#define CFE_SB_APID_COMPONENT          0x000001FF  /* 0-8(9) bits for Pri Hdr APID */
+#define CFE_SB_APID_OFFSET                      0
+#define CFE_SB_TYPE_COMPONENT          0x00008000  /* 1 Cmd/Tlm Bit (bit #15) */
+#define CFE_SB_TYPE_OFFSET                     15
+#define CFE_SB_SUBSYS_COMPONENT        0x00007E00  /* bits 9-14(6) bits for APID Subsystem ID */
+#define CFE_SB_SUBSYS_OFFSET                    9
+#define CFE_SB_SYSTEM_COMPONENT        0x00000000
+#define CFE_SB_SYSTEM_OFFSET                   16
+
+
+
 /* begin necessary includes */
 
 #ifdef __cplusplus
    extern "C" {
 #endif
 
-#include "cfe_sb.h"
-#include "cfe_sb_msg_id_util.h"
+#include "cfe/cfe_sb.h"
+#include "cfe/cfe_sb_msg_id_util.h"
 
 #ifdef __cplusplus
    }
