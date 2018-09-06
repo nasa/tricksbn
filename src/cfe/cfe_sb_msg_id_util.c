@@ -746,6 +746,185 @@ void CFE_SB_TimeStampMsg(CFE_SB_MsgPtr_t MsgPtr, CFE_TIME_SysTime_t Time)
 
 }/* end CFE_SB_TimeStampMsg */
 
+/******************************************************************************
+**  Function:  CFE_SB_GetChecksum()
+**
+**  Purpose:
+**    Get the checksum field of message.
+**
+**  Arguments:
+**    MsgPtr - Pointer to a CFE_SB_Msg_t
+**
+**  Return:
+**
+*/
+uint16 CFE_SB_GetChecksum(CFE_SB_MsgPtr_t MsgPtr)
+{
+#ifdef MESSAGE_FORMAT_IS_CCSDS
+
+    CFE_SB_CmdHdr_t     *CmdHdrPtr;
+
+    /* if msg type is telemetry or there is no secondary hdr... */
+    if((CCSDS_RD_TYPE(MsgPtr->Hdr) == CCSDS_TLM)||(CCSDS_RD_SHDR(MsgPtr->Hdr) == 0)){
+        return 0;
+    }/* end if */
+
+    /* cast the input pointer to a Cmd Msg pointer */
+    CmdHdrPtr = (CFE_SB_CmdHdr_t *)MsgPtr;
+
+    return CCSDS_RD_CHECKSUM(CmdHdrPtr->Sec);
+
+#endif
+}/* end CFE_SB_GetChecksum */
+
+/******************************************************************************
+**  Function:  CCSDS_ComputeCheckSum()
+**
+**  Purpose:
+**    Compute the checksum for a command packet.  The checksum is the XOR of
+**    all bytes in the packet; a valid checksum is zero.
+**
+**  Arguments:
+**    PktPtr   : Pointer to header of command packet.  The packet must
+**               have a secondary header and the length in the primary
+**               header must be correct.
+**
+**  Return:
+**    TRUE if checksum of packet is valid; FALSE if not.
+*/
+
+uint8 CCSDS_ComputeCheckSum (CCSDS_CommandPacket_t *PktPtr)
+{
+   uint16   PktLen   = CCSDS_RD_LEN(PktPtr->SpacePacket.Hdr);
+   uint8   *BytePtr  = (uint8 *)PktPtr;
+   uint8    CheckSum;
+
+   CheckSum = 0xFF;
+   while (PktLen--)  CheckSum ^= *(BytePtr++);
+
+   return CheckSum;
+
+} /* END CCSDS_ComputeCheckSum() */
+
+/******************************************************************************
+**  Function:  CCSDS_LoadCheckSum()
+**
+**  Purpose:
+**    Compute and load a checksum for a CCSDS command packet that has a
+**    secondary header.
+**
+**  Arguments:
+**    PktPtr   : Pointer to header of command packet.  The packet must
+**               have a secondary header and the length in the primary
+**               header must be correct.  The checksum field in the packet
+**               will be modified.
+**
+**  Return:
+**    (none)
+*/
+
+void CCSDS_LoadCheckSum (CCSDS_CommandPacket_t *PktPtr)
+{
+   uint8    CheckSum;
+
+   /* Clear the checksum field so the new checksum is correct. */
+   CCSDS_WR_CHECKSUM(PktPtr->Sec, 0);
+
+   /* Compute and load new checksum. */
+   CheckSum = CCSDS_ComputeCheckSum(PktPtr);
+   CCSDS_WR_CHECKSUM(PktPtr->Sec, CheckSum);
+
+} /* END CCSDS_LoadCheckSum() */
+
+/******************************************************************************
+**  Function:  CCSDS_ValidCheckSum()
+**
+**  Purpose:
+**    Determine whether a checksum in a command packet is valid.
+**
+**  Arguments:
+**    PktPtr   : Pointer to header of command packet.  The packet must
+**               have a secondary header and the length in the primary
+**               header must be correct.
+**
+**  Return:
+**    TRUE if checksum of packet is valid; FALSE if not.
+**    A valid checksum is 0.
+*/
+
+boolean CCSDS_ValidCheckSum (CCSDS_CommandPacket_t *PktPtr)
+{
+
+   return (CCSDS_ComputeCheckSum(PktPtr) == 0);
+
+} /* END CCSDS_ValidCheckSum() */
+
+
+/******************************************************************************
+**  Function:  CFE_SB_GenerateChecksum()
+**
+**  Purpose:
+**    Calculate and Set the checksum field of message.
+**
+**  Arguments:
+**    MsgPtr - Pointer to a CFE_SB_Msg_t
+**
+**  Note: If any header fields are changed after this call, the checksum will
+**        no longer be valid.
+**        Also, the packet length field dictates the number of iterations
+**        used in the checksum algorithm and therefore must be properly set
+**        before calling this function.
+**
+**  Return:
+**    (none)
+*/
+void CFE_SB_GenerateChecksum(CFE_SB_MsgPtr_t MsgPtr)
+{
+#ifdef MESSAGE_FORMAT_IS_CCSDS
+
+    CCSDS_CommandPacket_t    *CmdPktPtr;
+
+    /* if msg type is telemetry or there is no secondary hdr... */
+    if((CCSDS_RD_TYPE(MsgPtr->Hdr) == CCSDS_TLM)||(CCSDS_RD_SHDR(MsgPtr->Hdr) == 0)){
+        return;
+    }/* end if */
+
+    CmdPktPtr = (CCSDS_CommandPacket_t *)MsgPtr;
+
+    CCSDS_LoadCheckSum(CmdPktPtr);
+
+#endif
+}/* end CFE_SB_GenerateChecksum */
+
+/******************************************************************************
+**  Function:  CFE_SB_ValidateChecksum()
+**
+**  Purpose:
+**    Validate the checksum field of message.
+**
+**  Arguments:
+**    MsgPtr - Pointer to a CFE_SB_Msg_t
+**
+**  Return:
+**    TRUE if checksum of packet is valid; FALSE if not.
+*/
+boolean CFE_SB_ValidateChecksum(CFE_SB_MsgPtr_t MsgPtr)
+{
+#ifdef MESSAGE_FORMAT_IS_CCSDS
+
+    CCSDS_CommandPacket_t    *CmdPktPtr;
+
+    /* if msg type is telemetry or there is no secondary hdr... */
+    if((CCSDS_RD_TYPE(MsgPtr->Hdr) == CCSDS_TLM)||(CCSDS_RD_SHDR(MsgPtr->Hdr) == 0)){
+        return FALSE;
+    }/* end if */
+
+    CmdPktPtr = (CCSDS_CommandPacket_t *)MsgPtr;
+
+    return CCSDS_ValidCheckSum (CmdPktPtr);
+
+#endif
+}/* end CFE_SB_ValidateChecksum */
 
 
 
