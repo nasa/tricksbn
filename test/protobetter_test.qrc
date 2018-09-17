@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/protobetter_test">
+        <file>data/test_c.ptype</file>
+        <file>data/test_c_vector.ptype</file>
+    </qresource>
+</RCC>
