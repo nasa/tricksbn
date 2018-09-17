@@ -20,7 +20,6 @@ INCLUDEPATH += \
     include
 
 SOURCES += \
-    ../protobetter_dynamic_lib/src/protobetterdynamic.cpp \
     src/protobetter_test.cpp \
     src/test_main.cpp
 
@@ -30,3 +29,10 @@ HEADERS += \
 
 RESOURCES += \
     protobetter_test.qrc
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../protobetter_dynamic_lib/release/ -lprotobetter_dynamic_lib
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../protobetter_dynamic_lib/debug/ -lprotobetter_dynamic_lib
+else:unix: LIBS += -L$$OUT_PWD/../protobetter_dynamic_lib/ -lprotobetter_dynamic_lib
+
+INCLUDEPATH += $$PWD/../protobetter_dynamic_lib/include
+DEPENDPATH += $$PWD/../protobetter_dynamic_lib
