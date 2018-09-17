@@ -13,6 +13,8 @@
 
 #include <QSharedPointer>
 
+#include "protobetter_dynamic_lib_global.h"
+
 // TODO: update this so that you pass your QStrings and similar types around
 // by const reference for better performance where possible
 

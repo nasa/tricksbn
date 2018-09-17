@@ -16,16 +16,16 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 INCLUDEPATH += \
-    ../include \
+    ../protobetter_dynamic_lib/include \
     include
 
 SOURCES += \
-    ../src/protobetterdynamic.cpp \
+    ../protobetter_dynamic_lib/src/protobetterdynamic.cpp \
     src/protobetter_test.cpp \
     src/test_main.cpp
 
 HEADERS += \
-    ../include/protobetterdynamic.h \
+    ../protobetter_dynamic_lib/include/protobetterdynamic.h \
     include/protobetter_test.h
 
 RESOURCES += \
