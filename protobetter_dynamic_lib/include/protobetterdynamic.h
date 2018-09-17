@@ -18,7 +18,7 @@
 
 namespace Protobetter
 {
-    struct PrototypeMember
+    struct PROTOBETTER_DYNAMIC_LIBSHARED_EXPORT PrototypeMember
     {
         QString name;
         QString type;
@@ -28,7 +28,7 @@ namespace Protobetter
 
     // this is the c++ object corresponding to a single 'ProtoType'
     // json object defined in a *.ptype file
-    class Prototype
+    class PROTOBETTER_DYNAMIC_LIBSHARED_EXPORT Prototype
     {
     public:
 
@@ -45,7 +45,7 @@ namespace Protobetter
     };
 
     // just a lightweight wrapper around a list of prototypes
-    class PrototypeCollection
+    class PROTOBETTER_DYNAMIC_LIBSHARED_EXPORT PrototypeCollection
     {
     public:
 
@@ -69,7 +69,7 @@ namespace Protobetter
         QList<Prototype> rootTypes;
     };
 
-    struct FieldAccessor
+    struct PROTOBETTER_DYNAMIC_LIBSHARED_EXPORT FieldAccessor
     {
         FieldAccessor();
         FieldAccessor(std::size_t size);
@@ -82,7 +82,7 @@ namespace Protobetter
         uint64_t packingMask; // all bits = false if not a bitfield o/
     };
 
-    class DynamicType
+    class PROTOBETTER_DYNAMIC_LIBSHARED_EXPORT DynamicType
     {
     public:
 
@@ -109,7 +109,7 @@ namespace Protobetter
         QString name;
     };
 
-    class DynamicTypeCollection
+    class PROTOBETTER_DYNAMIC_LIBSHARED_EXPORT DynamicTypeCollection
     {
     public:
 
@@ -132,7 +132,7 @@ namespace Protobetter
         QList<DynamicType::Ptr> rootTypes;
     };
 
-    class PrimitiveField : public DynamicType
+    class PROTOBETTER_DYNAMIC_LIBSHARED_EXPORT PrimitiveField : public DynamicType
     {
     public:
 
@@ -157,7 +157,7 @@ namespace Protobetter
         QSharedPointer<QMap<QString, FieldAccessor> > memberAccessors;
     };
 
-    class FieldCollection : public DynamicType
+    class PROTOBETTER_DYNAMIC_LIBSHARED_EXPORT FieldCollection : public DynamicType
     {
     public:
 
@@ -188,7 +188,7 @@ namespace Protobetter
         QSharedPointer<QMap<QString, FieldAccessor> > memberAccessors;
     };
 
-    class BitfieldCollection : public DynamicType
+    class PROTOBETTER_DYNAMIC_LIBSHARED_EXPORT BitfieldCollection : public DynamicType
     {
     public:
 
@@ -230,7 +230,7 @@ namespace Protobetter
         QSharedPointer<QMap<QString, FieldAccessor> > memberAccessors;
     };
 
-    class DynamicObject
+    class PROTOBETTER_DYNAMIC_LIBSHARED_EXPORT DynamicObject
     {
     public:
 
