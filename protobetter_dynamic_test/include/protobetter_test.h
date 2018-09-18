@@ -15,6 +15,7 @@ private slots:
     void TestDynamicAPI();
     void TestBittylicious();
     void TestBittylicousFromPtypeFile();
+    void TestAgainstProtobetterC();
 };
 
 #endif // PROTOBETTER_TEST_H

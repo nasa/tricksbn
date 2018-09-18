@@ -14,6 +14,8 @@
 
 #include "protobetter_test.h"
 
+#include "protobetter_generated.h"
+
 namespace
 {
     void CompareFloats(float a, float b)
@@ -158,7 +160,7 @@ namespace
     void InitBittyliciousWithExpectedValues(Protobetter::DynamicType::Ptr lilBittyRootType, Protobetter::DynamicType::Ptr vectorRootType, Protobetter::DynamicObject::Ptr bittylicious)
     {
         bittylicious->SetByteArray("header", "The quick brown");
-        bittylicious->SetFloat("a", 42.123456f);
+        bittylicious->SetDouble("a", 42.123456l);
 
         InitLilBittyWithExpectedValues(vectorRootType, bittylicious->GetObject(lilBittyRootType, "b[0]"));
         InitLilBittyWithExpectedValues(vectorRootType, bittylicious->GetObject(lilBittyRootType, "b[1]"));
@@ -176,7 +178,7 @@ namespace
     {
         QVERIFY(strcmp(bittylicious->GetByteArray("header"), "The quick brown") == 0);
 
-        CompareFloats(bittylicious->GetFloat("a"), 42.123456f);
+        CompareDoubles(bittylicious->GetDouble("a"), 42.123456l);
 
         VerifyLilBittyExpectedValues(vectorRootType, bittylicious->GetObject(lilBittyRootType, "b[0]"));
         VerifyLilBittyExpectedValues(vectorRootType, bittylicious->GetObject(lilBittyRootType, "b[1]"));
@@ -493,3 +495,55 @@ void ProtobetterTest::TestBittylicousFromPtypeFile()
         QFAIL(e.what());
     }
 }
+
+void ProtobetterTest::TestAgainstProtobetterC()
+{
+    try
+    {
+        Bittylicious_c a, b;
+
+        char buffer[STRUCT_BITTYLICIOUS_C_PACKED_SIZE];
+
+        InitBittylicious_cWithExpectedValues(&a);
+
+        PackBittylicious_c(buffer, &a);
+
+        Protobetter::PrototypeCollection prototypes;
+
+        prototypes.LoadPrototypesFromFile(QString(":/protobetter_test/data/test_c.ptype"));
+
+        QVERIFY(prototypes.Size() == 3);
+
+        QVERIFY(prototypes.HasType("Vector_c"));
+        QVERIFY(prototypes.HasType("LilBity_c"));
+        QVERIFY(prototypes.HasType("Bittylicious_c"));
+
+        auto dynamicTypes = Protobetter::DynamicTypeCollection::FromPrototypeCollection(prototypes);
+
+        QVERIFY(dynamicTypes.Size() == 3);
+
+        QVERIFY(dynamicTypes.HasType("Vector_c"));
+        QVERIFY(dynamicTypes.HasType("LilBity_c"));
+        QVERIFY(dynamicTypes.HasType("Bittylicious_c"));
+
+        QCOMPARE(dynamicTypes.GetType("Vector_c")->Size(), 13);
+        QCOMPARE(dynamicTypes.GetType("LilBity_c")->Size(), 53);
+        QCOMPARE(dynamicTypes.GetType("Bittylicious_c")->Size(), 150);
+
+        auto vectorRootType = dynamicTypes.GetType("Vector_c");
+        auto lilBittyRootType = dynamicTypes.GetType("LilBity_c");
+        auto bittyliciousRootType = dynamicTypes.GetType("Bittylicious_c");
+
+        /* create instances of these composite types */
+        auto myBittylicious = Protobetter::DynamicObject::Ptr(new Protobetter::DynamicObject(bittyliciousRootType));
+
+        myBittylicious->SetData(buffer);
+
+        VerifyBittyliciousExpectedValues(lilBittyRootType, vectorRootType, myBittylicious);
+    }
+    catch (const std::exception &e)
+    {
+        QFAIL(e.what());
+    }
+}
+

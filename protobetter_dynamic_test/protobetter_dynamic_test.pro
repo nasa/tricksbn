@@ -20,10 +20,12 @@ INCLUDEPATH += \
     include
 
 SOURCES += \
+    src/protobetter_generated.c \
     src/protobetter_test.cpp \
     src/test_main.cpp
 
 HEADERS += \
+    include/protobetter_generated.h \
     ../protobetter_dynamic_lib/include/protobetterdynamic.h \
     include/protobetter_test.h
 
