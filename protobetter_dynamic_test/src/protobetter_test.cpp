@@ -528,7 +528,7 @@ void ProtobetterTest::TestAgainstProtobetterC()
 
         QCOMPARE(dynamicTypes.GetType("Vector_c")->Size(), 13);
         QCOMPARE(dynamicTypes.GetType("LilBity_c")->Size(), 53);
-        QCOMPARE(dynamicTypes.GetType("Bittylicious_c")->Size(), 150);
+        QCOMPARE(dynamicTypes.GetType("Bittylicious_c")->Size(), STRUCT_BITTYLICIOUS_C_PACKED_SIZE);
 
         auto vectorRootType = dynamicTypes.GetType("Vector_c");
         auto lilBittyRootType = dynamicTypes.GetType("LilBity_c");
