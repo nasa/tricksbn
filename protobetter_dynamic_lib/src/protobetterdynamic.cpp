@@ -735,11 +735,15 @@ Protobetter::DynamicObject::~DynamicObject()
 
 uint8_t Protobetter::DynamicObject::GetUInt8(QString memberName)
 {
+#ifndef QT_NO_DEBUG
+
     if (!this->memberAccessors->contains(memberName))
     {
         QString errMsg = QString("No member named ") + memberName;
         throw std::invalid_argument(errMsg.toStdString().c_str());
     }
+
+#endif
 
     Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
 
@@ -754,11 +758,15 @@ uint8_t Protobetter::DynamicObject::GetUInt8(QString memberName)
 
 int8_t Protobetter::DynamicObject::GetInt8(QString memberName)
 {
+#ifndef QT_NO_DEBUG
+
     if (!this->memberAccessors->contains(memberName))
     {
         QString errMsg = QString("No member named ") + memberName;
         throw std::invalid_argument(errMsg.toStdString().c_str());
     }
+
+#endif
 
     Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
 
@@ -773,77 +781,105 @@ int8_t Protobetter::DynamicObject::GetInt8(QString memberName)
 
 uint16_t Protobetter::DynamicObject::GetUInt16(QString memberName)
 {
+#ifndef QT_NO_DEBUG
+
     if (!this->memberAccessors->contains(memberName))
     {
         QString errMsg = QString("No member named ") + memberName;
         throw std::invalid_argument(errMsg.toStdString().c_str());
     }
+
+#endif
 
     return qFromBigEndian<quint16>(this->data + this->memberAccessors->value(memberName).byteOffset);
 }
 
 int16_t Protobetter::DynamicObject::GetInt16(QString memberName)
 {
+#ifndef QT_NO_DEBUG
+
     if (!this->memberAccessors->contains(memberName))
     {
         QString errMsg = QString("No member named ") + memberName;
         throw std::invalid_argument(errMsg.toStdString().c_str());
     }
+
+#endif
 
     return qFromBigEndian<qint16>(this->data + this->memberAccessors->value(memberName).byteOffset);
 }
 
 uint32_t Protobetter::DynamicObject::GetUInt32(QString memberName)
 {
+#ifndef QT_NO_DEBUG
+
     if (!this->memberAccessors->contains(memberName))
     {
         QString errMsg = QString("No member named ") + memberName;
         throw std::invalid_argument(errMsg.toStdString().c_str());
     }
+
+#endif
 
     return qFromBigEndian<quint32>(this->data + this->memberAccessors->value(memberName).byteOffset);
 }
 
 int32_t Protobetter::DynamicObject::GetInt32(QString memberName)
 {
+#ifndef QT_NO_DEBUG
+
     if (!this->memberAccessors->contains(memberName))
     {
         QString errMsg = QString("No member named ") + memberName;
         throw std::invalid_argument(errMsg.toStdString().c_str());
     }
+
+#endif
 
     return qFromBigEndian<qint32>(this->data + this->memberAccessors->value(memberName).byteOffset);
 }
 
 uint64_t Protobetter::DynamicObject::GetUInt64(QString memberName)
 {
+#ifndef QT_NO_DEBUG
+
     if (!this->memberAccessors->contains(memberName))
     {
         QString errMsg = QString("No member named ") + memberName;
         throw std::invalid_argument(errMsg.toStdString().c_str());
     }
+
+#endif
 
     return qFromBigEndian<quint64>(this->data + this->memberAccessors->value(memberName).byteOffset);
 }
 
 int64_t Protobetter::DynamicObject::GetInt64(QString memberName)
 {
+#ifndef QT_NO_DEBUG
+
     if (!this->memberAccessors->contains(memberName))
     {
         QString errMsg = QString("No member named ") + memberName;
         throw std::invalid_argument(errMsg.toStdString().c_str());
     }
+
+#endif
 
     return qFromBigEndian<qint64>(this->data + this->memberAccessors->value(memberName).byteOffset);
 }
 
 float Protobetter::DynamicObject::GetFloat(QString memberName)
 {
+#ifndef QT_NO_DEBUG
+
     if (!this->memberAccessors->contains(memberName))
     {
         QString errMsg = QString("No member named ") + memberName;
         throw std::invalid_argument(errMsg.toStdString().c_str());
     }
+
+#endif
 
     Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
 
@@ -860,11 +896,15 @@ float Protobetter::DynamicObject::GetFloat(QString memberName)
 
 double Protobetter::DynamicObject::GetDouble(QString memberName)
 {
+#ifndef QT_NO_DEBUG
+
     if (!this->memberAccessors->contains(memberName))
     {
         QString errMsg = QString("No member named ") + memberName;
         throw std::invalid_argument(errMsg.toStdString().c_str());
     }
+
+#endif
 
     Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
 
@@ -881,11 +921,15 @@ double Protobetter::DynamicObject::GetDouble(QString memberName)
 
 void Protobetter::DynamicObject::SetUInt8(QString memberName, uint8_t value)
 {
+#ifndef QT_NO_DEBUG
+
     if (!this->memberAccessors->contains(memberName))
     {
         QString errMsg = QString("No member named ") + memberName;
         throw std::invalid_argument(errMsg.toStdString().c_str());
     }
+
+#endif
 
     Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
 
@@ -896,11 +940,15 @@ void Protobetter::DynamicObject::SetUInt8(QString memberName, uint8_t value)
 
 void Protobetter::DynamicObject::SetInt8(QString memberName, int8_t value)
 {
+#ifndef QT_NO_DEBUG
+
     if (!this->memberAccessors->contains(memberName))
     {
         QString errMsg = QString("No member named ") + memberName;
         throw std::invalid_argument(errMsg.toStdString().c_str());
     }
+
+#endif
 
     Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
 
@@ -911,11 +959,15 @@ void Protobetter::DynamicObject::SetInt8(QString memberName, int8_t value)
 
 void Protobetter::DynamicObject::SetUInt16(QString memberName, uint16_t value)
 {
+#ifndef QT_NO_DEBUG
+
     if (!this->memberAccessors->contains(memberName))
     {
         QString errMsg = QString("No member named ") + memberName;
         throw std::invalid_argument(errMsg.toStdString().c_str());
     }
+
+#endif
 
     uint16_t swappedValue = 0;
 
@@ -930,11 +982,15 @@ void Protobetter::DynamicObject::SetUInt16(QString memberName, uint16_t value)
 
 void Protobetter::DynamicObject::SetInt16(QString memberName, int16_t value)
 {
+#ifndef QT_NO_DEBUG
+
     if (!this->memberAccessors->contains(memberName))
     {
         QString errMsg = QString("No member named ") + memberName;
         throw std::invalid_argument(errMsg.toStdString().c_str());
     }
+
+#endif
 
     int16_t swappedValue = 0;
 
@@ -949,11 +1005,15 @@ void Protobetter::DynamicObject::SetInt16(QString memberName, int16_t value)
 
 void Protobetter::DynamicObject::SetUInt32(QString memberName, uint32_t value)
 {
+#ifndef QT_NO_DEBUG
+
     if (!this->memberAccessors->contains(memberName))
     {
         QString errMsg = QString("No member named ") + memberName;
         throw std::invalid_argument(errMsg.toStdString().c_str());
     }
+
+#endif
 
     uint32_t swappedValue = 0;
 
@@ -968,11 +1028,15 @@ void Protobetter::DynamicObject::SetUInt32(QString memberName, uint32_t value)
 
 void Protobetter::DynamicObject::SetInt32(QString memberName, int32_t value)
 {
+#ifndef QT_NO_DEBUG
+
     if (!this->memberAccessors->contains(memberName))
     {
         QString errMsg = QString("No member named ") + memberName;
         throw std::invalid_argument(errMsg.toStdString().c_str());
     }
+
+#endif
 
     int32_t swappedValue = 0;
 
@@ -987,11 +1051,15 @@ void Protobetter::DynamicObject::SetInt32(QString memberName, int32_t value)
 
 void Protobetter::DynamicObject::SetUInt64(QString memberName, uint64_t value)
 {
+#ifndef QT_NO_DEBUG
+
     if (!this->memberAccessors->contains(memberName))
     {
         QString errMsg = QString("No member named ") + memberName;
         throw std::invalid_argument(errMsg.toStdString().c_str());
     }
+
+#endif
 
     uint64_t swappedValue = 0;
 
@@ -1006,11 +1074,15 @@ void Protobetter::DynamicObject::SetUInt64(QString memberName, uint64_t value)
 
 void Protobetter::DynamicObject::SetInt64(QString memberName, int64_t value)
 {
+#ifndef QT_NO_DEBUG
+
     if (!this->memberAccessors->contains(memberName))
     {
         QString errMsg = QString("No member named ") + memberName;
         throw std::invalid_argument(errMsg.toStdString().c_str());
     }
+
+#endif
 
     int64_t swappedValue = 0;
 
@@ -1025,11 +1097,15 @@ void Protobetter::DynamicObject::SetInt64(QString memberName, int64_t value)
 
 void Protobetter::DynamicObject::SetFloat(QString memberName, float value)
 {
+#ifndef QT_NO_DEBUG
+
     if (!this->memberAccessors->contains(memberName))
     {
         QString errMsg = QString("No member named ") + memberName;
         throw std::invalid_argument(errMsg.toStdString().c_str());
     }
+
+#endif
 
     uint32_t packedValue = 0;
 
@@ -1047,11 +1123,15 @@ void Protobetter::DynamicObject::SetFloat(QString memberName, float value)
 
 void Protobetter::DynamicObject::SetDouble(QString memberName, double value)
 {
+#ifndef QT_NO_DEBUG
+
     if (!this->memberAccessors->contains(memberName))
     {
         QString errMsg = QString("No member named ") + memberName;
         throw std::invalid_argument(errMsg.toStdString().c_str());
     }
+
+#endif
 
     uint64_t packedValue = 0;
 
@@ -1069,11 +1149,15 @@ void Protobetter::DynamicObject::SetDouble(QString memberName, double value)
 
 const char * Protobetter::DynamicObject::GetByteArray(QString memberName)
 {
+#ifndef QT_NO_DEBUG
+
     if (!this->memberAccessors->contains(memberName))
     {
         QString errMsg = QString("No member named ") + memberName;
         throw std::invalid_argument(errMsg.toStdString().c_str());
     }
+
+#endif
 
     Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
 
@@ -1082,11 +1166,15 @@ const char * Protobetter::DynamicObject::GetByteArray(QString memberName)
 
 void Protobetter::DynamicObject::SetByteArray(QString memberName, const char *value)
 {
+#ifndef QT_NO_DEBUG
+
     if (!this->memberAccessors->contains(memberName))
     {
         QString errMsg = QString("No member named ") + memberName;
         throw std::invalid_argument(errMsg.toStdString().c_str());
     }
+
+#endif
 
     Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
 
@@ -1095,11 +1183,15 @@ void Protobetter::DynamicObject::SetByteArray(QString memberName, const char *va
 
 uint64_t Protobetter::DynamicObject::GetUnsignedBitfield(QString memberName)
 {
+#ifndef QT_NO_DEBUG
+
     if (!this->memberAccessors->contains(memberName))
     {
         QString errMsg = QString("No member named ") + memberName;
         throw std::invalid_argument(errMsg.toStdString().c_str());
     }
+
+#endif
 
     Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
 
@@ -1137,11 +1229,15 @@ uint64_t Protobetter::DynamicObject::GetUnsignedBitfield(QString memberName)
 
 int64_t Protobetter::DynamicObject::GetSignedBitfield(QString memberName)
 {
+#ifndef QT_NO_DEBUG
+
     if (!this->memberAccessors->contains(memberName))
     {
         QString errMsg = QString("No member named ") + memberName;
         throw std::invalid_argument(errMsg.toStdString().c_str());
     }
+
+#endif
 
     Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
 
@@ -1185,11 +1281,15 @@ int64_t Protobetter::DynamicObject::GetSignedBitfield(QString memberName)
 
 void Protobetter::DynamicObject::SetSignedBitfield(QString memberName, int64_t value)
 {
+#ifndef QT_NO_DEBUG
+
     if (!this->memberAccessors->contains(memberName))
     {
         QString errMsg = QString("No member named ") + memberName;
         throw std::invalid_argument(errMsg.toStdString().c_str());
     }
+
+#endif
 
     Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
 
@@ -1235,11 +1335,15 @@ void Protobetter::DynamicObject::SetSignedBitfield(QString memberName, int64_t v
 
 void Protobetter::DynamicObject::SetUnsignedBitfield(QString memberName, uint64_t value)
 {
+#ifndef QT_NO_DEBUG
+
     if (!this->memberAccessors->contains(memberName))
     {
         QString errMsg = QString("No member named ") + memberName;
         throw std::invalid_argument(errMsg.toStdString().c_str());
     }
+
+#endif
 
     Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
 
@@ -1289,6 +1393,8 @@ void Protobetter::DynamicObject::SetUnsignedBitfield(QString memberName, uint64_
 
 Protobetter::DynamicObject Protobetter::DynamicObject::GetObject(QSharedPointer<DynamicType> type, QString memberName)
 {
+#ifndef QT_NO_DEBUG
+
     if (!this->memberAccessors->contains(memberName))
     {
         QString errMsg = QString("No member named ") + memberName;
@@ -1299,6 +1405,8 @@ Protobetter::DynamicObject Protobetter::DynamicObject::GetObject(QSharedPointer<
         throw std::invalid_argument("Protobetter::DynamicObject::GetObject() must only be called on a complete root type!");
     }
 
+#endif
+
     Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
 
     char *fieldStart = this->data + accessor.byteOffset;
@@ -1308,11 +1416,15 @@ Protobetter::DynamicObject Protobetter::DynamicObject::GetObject(QSharedPointer<
 
 void Protobetter::DynamicObject::SetObject(QString memberName, QSharedPointer<DynamicType> type, const DynamicObject &object)
 {
+#ifndef QT_NO_DEBUG
+
     if (!this->memberAccessors->contains(memberName))
     {
         QString errMsg = QString("No member named ") + memberName;
         throw std::invalid_argument(errMsg.toStdString().c_str());
     }
+
+#endif
 
     Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
 
