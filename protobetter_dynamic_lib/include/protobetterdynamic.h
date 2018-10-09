@@ -241,6 +241,10 @@ namespace Protobetter
         DynamicObject(QSharedPointer<DynamicType> type);
         ~DynamicObject();
 
+        DynamicObject(const DynamicObject &other);
+
+        DynamicObject& operator=(const DynamicObject &other);
+
         // all of your type-specific Get()/Set() methods should go here
         uint8_t GetUInt8(QString memberName);
         uint16_t GetUInt16(QString memberName);
@@ -258,7 +262,7 @@ namespace Protobetter
         uint64_t GetUnsignedBitfield(QString memberName);
         int64_t GetSignedBitfield(QString memberName);
 
-        QSharedPointer<DynamicObject> GetObject(QSharedPointer<DynamicType> type, QString memberName);
+        DynamicObject GetObject(QSharedPointer<DynamicType> type, QString memberName);
 
         void SetUInt8(QString memberName, uint8_t value);
         void SetUInt16(QString memberName, uint16_t value);

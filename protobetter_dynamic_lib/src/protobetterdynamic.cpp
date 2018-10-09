@@ -700,6 +700,29 @@ Protobetter::DynamicObject::DynamicObject(QSharedPointer<Protobetter::DynamicTyp
 {
 }
 
+Protobetter::DynamicObject::DynamicObject(const DynamicObject &other)
+{
+    this->memberAccessors = other.memberAccessors;
+    this->size = size;
+    this->ownsData = false;
+    this->data = other.data;
+    this->typeName = other.typeName;
+}
+
+Protobetter::DynamicObject& Protobetter::DynamicObject::operator=(const DynamicObject &other)
+{
+    if (this != &other)
+    {
+        this->memberAccessors = other.memberAccessors;
+        this->typeName = other.typeName;
+        this->size = size;
+        this->ownsData = false;
+        this->data = other.data;
+    }
+
+    return *this;
+}
+
 Protobetter::DynamicObject::~DynamicObject()
 {
     if (data != NULL && this->ownsData)
@@ -1264,7 +1287,7 @@ void Protobetter::DynamicObject::SetUnsignedBitfield(QString memberName, uint64_
     }
 }
 
-QSharedPointer<Protobetter::DynamicObject> Protobetter::DynamicObject::GetObject(QSharedPointer<DynamicType> type, QString memberName)
+Protobetter::DynamicObject Protobetter::DynamicObject::GetObject(QSharedPointer<DynamicType> type, QString memberName)
 {
     if (!this->memberAccessors->contains(memberName))
     {
@@ -1280,7 +1303,7 @@ QSharedPointer<Protobetter::DynamicObject> Protobetter::DynamicObject::GetObject
 
     char *fieldStart = this->data + accessor.byteOffset;
 
-    return QSharedPointer<Protobetter::DynamicObject>(new DynamicObject(type, fieldStart));
+    return Protobetter::DynamicObject(type, fieldStart);
 }
 
 void Protobetter::DynamicObject::SetObject(QString memberName, QSharedPointer<DynamicType> type, const DynamicObject &object)
