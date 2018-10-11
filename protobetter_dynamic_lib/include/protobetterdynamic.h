@@ -125,6 +125,8 @@ namespace Protobetter
 
         static DynamicTypeCollection FromPrototypeCollection(const PrototypeCollection &prototypes);
 
+        QStringList GetRootTypeNames();
+
         // TODO: add API methods to modify elements already added to this collection
 
     private:

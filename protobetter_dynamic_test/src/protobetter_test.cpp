@@ -206,8 +206,6 @@ void ProtobetterTest::TestPrototypeJsonDeserialization()
     QVERIFY(prototypes.HasType("Vector_c"));
     QVERIFY(prototypes.HasType("LilBity_c"));
     QVERIFY(prototypes.HasType("Bittylicious_c"));
-
-    // TODO: finish this test case...
 }
 
 void ProtobetterTest::TestDynamicAPI()
@@ -519,6 +517,14 @@ void ProtobetterTest::TestAgainstProtobetterC()
         QVERIFY(prototypes.HasType("Bittylicious_c"));
 
         auto dynamicTypes = Protobetter::DynamicTypeCollection::FromPrototypeCollection(prototypes);
+
+        auto rootTypeNames = dynamicTypes.GetRootTypeNames();
+
+        QVERIFY(rootTypeNames.size() == 3);
+
+        QVERIFY(rootTypeNames[0] == "Vector_c");
+        QVERIFY(rootTypeNames[1] == "LilBity_c");
+        QVERIFY(rootTypeNames[2] == "Bittylicious_c");
 
         QVERIFY(dynamicTypes.Size() == 3);
 

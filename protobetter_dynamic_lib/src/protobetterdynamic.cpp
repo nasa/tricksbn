@@ -368,6 +368,18 @@ void Protobetter::DynamicTypeCollection::CreateDynamicTypeFromPrototypeRecursive
     dynamicTypes.AddDynamicType(newDynamicType);
 }
 
+QStringList Protobetter::DynamicTypeCollection::GetRootTypeNames()
+{
+    QStringList names;
+
+    for (int i = 0; i < rootTypes.size(); ++i)
+    {
+        names << rootTypes[i]->Name();
+    }
+
+    return names;
+}
+
 Protobetter::DynamicTypeCollection Protobetter::DynamicTypeCollection::FromPrototypeCollection(const Protobetter::PrototypeCollection &prototypes)
 {
     Protobetter::DynamicTypeCollection dynamicTypes;
