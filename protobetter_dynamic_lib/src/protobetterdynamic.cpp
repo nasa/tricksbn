@@ -117,12 +117,12 @@ namespace
 }
 
 Protobetter::FieldAccessor::FieldAccessor()
-    : size(0), byteOffset(0), bitOffset(0), packingMask(0)
+    : size(0), byteOffset(0), bitOffset(0), packingMask(0), type(ProtobetterFieldType::Object)
 {
 }
 
-Protobetter::FieldAccessor::FieldAccessor(std::size_t size)
-    : size(size), byteOffset(0), bitOffset(0), packingMask(0)
+Protobetter::FieldAccessor::FieldAccessor(ProtobetterFieldType type, std::size_t size)
+    : size(size), byteOffset(0), bitOffset(0), packingMask(0), type(type)
 {
 }
 
@@ -251,24 +251,61 @@ void Protobetter::DynamicTypeCollection::CreateDynamicTypeFromPrototypeRecursive
         std::size_t memberSize = 0;
         bool isPrimitiveType = true;
 
-        if (ptype.members[i].type == "uint8_t" || ptype.members[i].type == "int8_t")
+        ProtobetterFieldType type;
+
+        if (ptype.members[i].type == "uint8_t")
         {
+            type = ProtobetterFieldType::UInt8;
             memberSize = 1;
         }
-        else if (ptype.members[i].type == "uint16_t" || ptype.members[i].type == "int16_t")
+        else if (ptype.members[i].type == "int8_t")
         {
+            type = ProtobetterFieldType::Int8;
+            memberSize = 1;
+        }
+        else if (ptype.members[i].type == "uint16_t")
+        {
+            type = ProtobetterFieldType::UInt16;
             memberSize = 2;
         }
-        else if (ptype.members[i].type == "uint32_t" || ptype.members[i].type == "int32_t" || ptype.members[i].type == "float")
+        else if (ptype.members[i].type == "int16_t")
         {
+            type = ProtobetterFieldType::Int16;
+            memberSize = 2;
+        }
+        else if (ptype.members[i].type == "uint32_t")
+        {
+            type = ProtobetterFieldType::UInt32;
             memberSize = 4;
         }
-        else if (ptype.members[i].type == "uint64_t" || ptype.members[i].type == "int64_t" || ptype.members[i].type == "double")
+        else if (ptype.members[i].type == "int32_t")
         {
+            type = ProtobetterFieldType::Int32;
+            memberSize = 4;
+        }
+        else if (ptype.members[i].type == "float")
+        {
+            type = ProtobetterFieldType::Float;
+            memberSize = 4;
+        }
+        else if (ptype.members[i].type == "uint64_t")
+        {
+            type = ProtobetterFieldType::UInt64;
+            memberSize = 8;
+        }
+        else if (ptype.members[i].type == "int64_t")
+        {
+            type = ProtobetterFieldType::Int64;
+            memberSize = 8;
+        }
+        else if (ptype.members[i].type == "double")
+        {
+            type = ProtobetterFieldType::Double;
             memberSize = 8;
         }
         else if (ptype.members[i].type == "bytearray")
         {
+            type = ProtobetterFieldType::ByteArray;
             memberSize = ptype.members[i].arrayLength;
         }
         else // it's be a user-defined type
@@ -310,7 +347,9 @@ void Protobetter::DynamicTypeCollection::CreateDynamicTypeFromPrototypeRecursive
                 currentBitfieldCollection = Protobetter::BitfieldCollection::CreateNewBitfieldCollection(memberSize);
             }
 
-            currentBitfieldCollection->AddField(ptype.members[i].name, ptype.members[i].bits);
+            bool isSigned = ptype.members[i].type.startsWith("i") ? true : false;
+
+            currentBitfieldCollection->AddField(ptype.members[i].name, ptype.members[i].bits, isSigned);
 
             if (i == ptype.members.size() - 1)
             {
@@ -333,7 +372,7 @@ void Protobetter::DynamicTypeCollection::CreateDynamicTypeFromPrototypeRecursive
 
                 if (isPrimitiveType)
                 {
-                    newDynamicType->AddField(Protobetter::PrimitiveField::CreateNewPrimitiveField(memberName, memberSize));
+                    newDynamicType->AddField(Protobetter::PrimitiveField::CreateNewPrimitiveField(memberName, type, memberSize));
                 }
                 else
                 {
@@ -353,7 +392,7 @@ void Protobetter::DynamicTypeCollection::CreateDynamicTypeFromPrototypeRecursive
 
             if (isPrimitiveType)
             {
-                newDynamicType->AddField(Protobetter::PrimitiveField::CreateNewPrimitiveField(ptype.members[i].name, memberSize));
+                newDynamicType->AddField(Protobetter::PrimitiveField::CreateNewPrimitiveField(ptype.members[i].name, type, memberSize));
             }
             else
             {
@@ -418,6 +457,17 @@ QSharedPointer<QMap<QString, Protobetter::FieldAccessor> > Protobetter::FieldCol
     return this->memberAccessors;
 }
 
+Protobetter::ProtobetterFieldType Protobetter::FieldCollection::GetFieldType(QString name)
+{
+    if (!this->isComplete)
+    {
+        throw std::runtime_error("Protobetter::FieldCollection::GetFieldType ERROR: can't access field type info until type is complete!");
+    }
+
+    // TODO: some validation for debug builds...
+    return this->memberAccessors->value(name).type;
+}
+
 void Protobetter::FieldCollection::Finalize()
 {
     if (!this->isComplete)
@@ -426,7 +476,7 @@ void Protobetter::FieldCollection::Finalize()
 
         if (!this->IsRoot())
         {
-            Protobetter::FieldAccessor accessor(this->Size());
+            Protobetter::FieldAccessor accessor(ProtobetterFieldType::Object, this->Size());
             accessor.byteOffset = 0;
 
             this->memberAccessors->insert(this->name, accessor);
@@ -483,12 +533,12 @@ std::size_t Protobetter::FieldCollection::Size()
 }
 
 Protobetter::BitfieldCollection::Bitfield::Bitfield()
-    : name(""), bitOffset(0), length(0)
+    : name(""), bitOffset(0), length(0), isSigned(true)
 {
 }
 
-Protobetter::BitfieldCollection::Bitfield::Bitfield(QString name, std::size_t bitOffset, std::size_t length)
-    : name(name), bitOffset(bitOffset), length(length)
+Protobetter::BitfieldCollection::Bitfield::Bitfield(QString name, std::size_t bitOffset, std::size_t length, bool isSigned)
+    : name(name), bitOffset(bitOffset), length(length), isSigned(isSigned)
 {
 }
 
@@ -513,7 +563,9 @@ void Protobetter::BitfieldCollection::Finalize()
     {
         for (int i = 0; i < this->bitfields.size(); ++i)
         {
-            Protobetter::FieldAccessor accessor(this->size);
+            ProtobetterFieldType type = this->bitfields[i].isSigned ? ProtobetterFieldType::SignedBitfield : ProtobetterFieldType::UnsignedBitfield;
+
+            Protobetter::FieldAccessor accessor(type, this->size);
             accessor.bitOffset = this->bitfields[i].bitOffset;
             accessor.byteOffset = 0; // always a '0' byte offset within this field
             accessor.bitfieldSize = this->bitfields[i].length;
@@ -525,6 +577,17 @@ void Protobetter::BitfieldCollection::Finalize()
 
         this->isComplete = true;
     }
+}
+
+Protobetter::ProtobetterFieldType Protobetter::BitfieldCollection::GetFieldType(QString name)
+{
+    if (!this->isComplete)
+    {
+        throw std::runtime_error("Protobetter::BitfieldCollection::GetFieldType ERROR: can't access field type info until type is complete!");
+    }
+
+    // TODO: some validation for debug builds and return the right sign...
+    return Protobetter::SignedBitfield;
 }
 
 QSharedPointer<Protobetter::BitfieldCollection> Protobetter::BitfieldCollection::CreateNewBitfieldCollection(std::size_t size)
@@ -554,7 +617,7 @@ std::size_t Protobetter::BitfieldCollection::BitsAvailable()
     return (this->Size() * 8) - this->BitsUsed();
 }
 
-void Protobetter::BitfieldCollection::AddField(QString name, std::size_t width)
+void Protobetter::BitfieldCollection::AddField(QString name, std::size_t width, bool isSigned)
 {
     if (this->BitsAvailable() < width)
     {
@@ -573,7 +636,7 @@ void Protobetter::BitfieldCollection::AddField(QString name, std::size_t width)
         }
     }
 
-    this->bitfields.append(Bitfield(name, this->BitsUsed(), width));
+    this->bitfields.append(Bitfield(name, this->BitsUsed(), width, isSigned));
 }
 
 std::size_t Protobetter::BitfieldCollection::Size()
@@ -596,20 +659,25 @@ Protobetter::Prototype::Prototype()
 {
 }
 
-QSharedPointer<Protobetter::PrimitiveField> Protobetter::PrimitiveField::CreateNewPrimitiveField(QString name, std::size_t size)
+QSharedPointer<Protobetter::PrimitiveField> Protobetter::PrimitiveField::CreateNewPrimitiveField(QString name, ProtobetterFieldType type, std::size_t size)
 {
     if (size == 0)
     {
         throw std::invalid_argument("Cannot create a Protobetter::PrimitiveField w/ size = 0!");
     }
 
-    return QSharedPointer<Protobetter::PrimitiveField>(new Protobetter::PrimitiveField(name, size));
+    return QSharedPointer<Protobetter::PrimitiveField>(new Protobetter::PrimitiveField(name, type, size));
 }
 
-Protobetter::PrimitiveField::PrimitiveField(QString name, std::size_t size)
-    : DynamicType(name, false), size(size), memberAccessors(new QMap<QString, Protobetter::FieldAccessor>())
+Protobetter::ProtobetterFieldType Protobetter::PrimitiveField::GetFieldType(QString name)
 {
-    this->memberAccessors->insert(this->name, Protobetter::FieldAccessor(this->size));
+    return this->type;
+}
+
+Protobetter::PrimitiveField::PrimitiveField(QString name, ProtobetterFieldType type, std::size_t size)
+    : DynamicType(name, false), size(size), type(type), memberAccessors(new QMap<QString, Protobetter::FieldAccessor>())
+{
+    this->memberAccessors->insert(this->name, Protobetter::FieldAccessor(type, this->size));
 }
 
 std::size_t Protobetter::PrimitiveField::Size()

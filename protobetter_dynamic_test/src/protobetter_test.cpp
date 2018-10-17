@@ -34,14 +34,14 @@ namespace
 
         auto bitfieldCollection = Protobetter::BitfieldCollection::CreateNewBitfieldCollection(1);
 
-        bitfieldCollection->AddField("id", 4);
+        bitfieldCollection->AddField("id", 4, false);
         bitfieldCollection->Finalize();
 
         type->AddField(bitfieldCollection);
 
-        type->AddField(Protobetter::PrimitiveField::CreateNewPrimitiveField("x", 4));
-        type->AddField(Protobetter::PrimitiveField::CreateNewPrimitiveField("y", 4));
-        type->AddField(Protobetter::PrimitiveField::CreateNewPrimitiveField("z", 4));
+        type->AddField(Protobetter::PrimitiveField::CreateNewPrimitiveField("x", Protobetter::Float, 4));
+        type->AddField(Protobetter::PrimitiveField::CreateNewPrimitiveField("y", Protobetter::Float, 4));
+        type->AddField(Protobetter::PrimitiveField::CreateNewPrimitiveField("z", Protobetter::Float, 4));
 
         type->Finalize();
 
@@ -53,19 +53,19 @@ namespace
         auto type = Protobetter::FieldCollection::CreateNewRootType("LilBitty_c");
 
         // float
-        type->AddField(Protobetter::PrimitiveField::CreateNewPrimitiveField("a", 4));
+        type->AddField(Protobetter::PrimitiveField::CreateNewPrimitiveField("a", Protobetter::Float, 4));
 
         auto bitfieldCollection = Protobetter::BitfieldCollection::CreateNewBitfieldCollection(4);
 
-        bitfieldCollection->AddField("b", 31);
-        bitfieldCollection->AddField("c", 1);
+        bitfieldCollection->AddField("b", 31, false);
+        bitfieldCollection->AddField("c", 1, false);
         bitfieldCollection->Finalize();
 
         type->AddField(bitfieldCollection);
 
         bitfieldCollection = Protobetter::BitfieldCollection::CreateNewBitfieldCollection(4);
 
-        bitfieldCollection->AddField("d", 4);
+        bitfieldCollection->AddField("d", 4, false);
         bitfieldCollection->Finalize();
 
         type->AddField(bitfieldCollection);
@@ -76,7 +76,7 @@ namespace
 
         bitfieldCollection = Protobetter::BitfieldCollection::CreateNewBitfieldCollection(2);
 
-        bitfieldCollection->AddField("f", 16);
+        bitfieldCollection->AddField("f", 16, true);
         bitfieldCollection->Finalize();
 
         type->AddField(bitfieldCollection);
@@ -90,20 +90,20 @@ namespace
     {
         auto type = Protobetter::FieldCollection::CreateNewRootType("Bittylicious_c");
 
-        type->AddField(Protobetter::PrimitiveField::CreateNewPrimitiveField("header", 16));
-        type->AddField(qSharedPointerCast<Protobetter::DynamicType>(Protobetter::PrimitiveField::CreateNewPrimitiveField("a", 8)));
+        type->AddField(Protobetter::PrimitiveField::CreateNewPrimitiveField("header", Protobetter::ByteArray, 16));
+        type->AddField(qSharedPointerCast<Protobetter::DynamicType>(Protobetter::PrimitiveField::CreateNewPrimitiveField("a", Protobetter::Double, 8)));
 
         type->AddField(Protobetter::FieldCollection::CreateFieldFromRootType("b[0]", lilBittyRootType, true));
         type->AddField(Protobetter::FieldCollection::CreateFieldFromRootType("b[1]", lilBittyRootType, true));
 
-        type->AddField(Protobetter::PrimitiveField::CreateNewPrimitiveField("c[0]", 2));
-        type->AddField(Protobetter::PrimitiveField::CreateNewPrimitiveField("c[1]", 2));
-        type->AddField(Protobetter::PrimitiveField::CreateNewPrimitiveField("c[2]", 2));
+        type->AddField(Protobetter::PrimitiveField::CreateNewPrimitiveField("c[0]", Protobetter::Int16, 2));
+        type->AddField(Protobetter::PrimitiveField::CreateNewPrimitiveField("c[1]", Protobetter::Int16, 2));
+        type->AddField(Protobetter::PrimitiveField::CreateNewPrimitiveField("c[2]", Protobetter::Int16, 2));
 
         type->AddField(Protobetter::FieldCollection::CreateFieldFromRootType("d", vectorRootType, true));
 
         auto bitfieldCollection = Protobetter::BitfieldCollection::CreateNewBitfieldCollection(1);
-        bitfieldCollection->AddField("e", 3);
+        bitfieldCollection->AddField("e", 3, true);
         bitfieldCollection->Finalize();
 
         type->AddField(bitfieldCollection);
@@ -215,11 +215,9 @@ void ProtobetterTest::TestDynamicAPI()
         /* Define a DynamicType at runtime */
         Protobetter::FieldCollection::Ptr type = Protobetter::FieldCollection::CreateNewRootType("LilBitty_c");
 
-        // float
-        type->AddField(Protobetter::PrimitiveField::CreateNewPrimitiveField("fieldA", 4));
+        type->AddField(Protobetter::PrimitiveField::CreateNewPrimitiveField("fieldA", Protobetter::Float, 4));
 
-        // double
-        type->AddField(Protobetter::PrimitiveField::CreateNewPrimitiveField("fieldB", 8));
+        type->AddField(Protobetter::PrimitiveField::CreateNewPrimitiveField("fieldB", Protobetter::Double, 8));
 
         auto vectorRootType = CreateVectorRootType();
 
@@ -228,29 +226,27 @@ void ProtobetterTest::TestDynamicAPI()
 
         auto bitfieldCollection = Protobetter::BitfieldCollection::CreateNewBitfieldCollection(4);
 
-        bitfieldCollection->AddField("bitfieldA", 3);
-        bitfieldCollection->AddField("bitfieldB", 2);
-        bitfieldCollection->AddField("bitfieldC", 5);
+        bitfieldCollection->AddField("bitfieldA", 3, false);
+        bitfieldCollection->AddField("bitfieldB", 2, false);
+        bitfieldCollection->AddField("bitfieldC", 5, true);
         bitfieldCollection->Finalize();
 
         // bitfield collection
         type->AddField(bitfieldCollection);
 
-        // int32
-        type->AddField(Protobetter::PrimitiveField::CreateNewPrimitiveField("fieldC", 4));
+        type->AddField(Protobetter::PrimitiveField::CreateNewPrimitiveField("fieldC", Protobetter::Int32, 4));
 
         auto lilBittyRootType = CreateLilbittyRootType(vectorRootType);
 
         type->AddField(Protobetter::FieldCollection::CreateFieldFromRootType("myLilBitty", lilBittyRootType, true));
 
-        // uint32
-        type->AddField(Protobetter::PrimitiveField::CreateNewPrimitiveField("fieldD", 4));
+        type->AddField(Protobetter::PrimitiveField::CreateNewPrimitiveField("fieldD", Protobetter::UInt32, 4));
 
         bitfieldCollection = Protobetter::BitfieldCollection::CreateNewBitfieldCollection(2);
 
-        bitfieldCollection->AddField("bitfieldD", 11);
-        bitfieldCollection->AddField("bitfieldE", 4);
-        bitfieldCollection->AddField("bitfieldF", 1);
+        bitfieldCollection->AddField("bitfieldD", 11, true);
+        bitfieldCollection->AddField("bitfieldE", 4, true);
+        bitfieldCollection->AddField("bitfieldF", 1, false);
         bitfieldCollection->Finalize();
 
         // bitfield collection
@@ -258,8 +254,8 @@ void ProtobetterTest::TestDynamicAPI()
 
         bitfieldCollection = Protobetter::BitfieldCollection::CreateNewBitfieldCollection(1);
 
-        bitfieldCollection->AddField("tinyBits", 2);
-        bitfieldCollection->AddField("tinyBitsRollover", 5);
+        bitfieldCollection->AddField("tinyBits", 2, false);
+        bitfieldCollection->AddField("tinyBitsRollover", 5, false);
         bitfieldCollection->Finalize();
 
         // bitfield collection
@@ -301,6 +297,13 @@ void ProtobetterTest::TestDynamicAPI()
         // first make sure your DynamicType has the right expected size
         QVERIFY(type->Size() == 93);
 
+        QCOMPARE(type->GetFieldType("bitfieldA"), Protobetter::UnsignedBitfield);
+        QCOMPARE(type->GetFieldType("bitfieldB"), Protobetter::UnsignedBitfield);
+        QCOMPARE(type->GetFieldType("bitfieldC"), Protobetter::SignedBitfield);
+        QCOMPARE(type->GetFieldType("bitfieldD"), Protobetter::SignedBitfield);
+        QCOMPARE(type->GetFieldType("bitfieldE"), Protobetter::SignedBitfield);
+        QCOMPARE(type->GetFieldType("bitfieldF"), Protobetter::UnsignedBitfield);
+
         QCOMPARE(myStructInstance.GetUnsignedBitfield("bitfieldA"), 3);
         QCOMPARE(myStructInstance.GetUnsignedBitfield("bitfieldB"), 1);
         QCOMPARE(myStructInstance.GetSignedBitfield("bitfieldC"), -5);
@@ -308,15 +311,24 @@ void ProtobetterTest::TestDynamicAPI()
         QCOMPARE(myStructInstance.GetSignedBitfield("bitfieldE"), 7);
         QCOMPARE(myStructInstance.GetUnsignedBitfield("bitfieldF"), 1);
 
+        QCOMPARE(type->GetFieldType("fieldA"), Protobetter::Float);
+        QCOMPARE(type->GetFieldType("fieldB"), Protobetter::Double);
+
         CompareFloats(myStructInstance.GetFloat("fieldA"), 123.456f);
         CompareDoubles(myStructInstance.GetDouble("fieldB"), 9876.5432f);
 
         QCOMPARE(myStructInstance.GetInt32("fieldC"), -421234);
         QCOMPARE(myStructInstance.GetUInt32("fieldD"), 678910);
 
+        QCOMPARE(type->GetFieldType("vectorField[0].x"), Protobetter::Float);
+        QCOMPARE(type->GetFieldType("vectorField[0].y"), Protobetter::Float);
+        QCOMPARE(type->GetFieldType("vectorField[0].z"), Protobetter::Float);
+
         CompareFloats(myStructInstance.GetFloat("vectorField[0].x"), 42.0f);
         CompareFloats(myStructInstance.GetFloat("vectorField[0].y"), 43.0f);
         CompareFloats(myStructInstance.GetFloat("vectorField[0].z"), 44.0f);
+
+        QCOMPARE(type->GetFieldType("myLilBitty.f"), Protobetter::SignedBitfield);
 
         QCOMPARE(myStructInstance.GetSignedBitfield("myLilBitty.f"), -32768);
 
@@ -325,8 +337,20 @@ void ProtobetterTest::TestDynamicAPI()
             // and delete it without destroying the data since the reference doesn't own it
             auto myLilBitty = myStructInstance.GetObject(lilBittyRootType, "myLilBitty");
 
+            QCOMPARE(lilBittyRootType->GetFieldType("f"), Protobetter::SignedBitfield);
+
             CompareFloats(myLilBitty.GetSignedBitfield("f"), -32768);
         }
+
+        QCOMPARE(type->GetFieldType("myLilBitty.e[0].x"), Protobetter::Float);
+        QCOMPARE(type->GetFieldType("myLilBitty.e[0].y"), Protobetter::Float);
+        QCOMPARE(type->GetFieldType("myLilBitty.e[0].z"), Protobetter::Float);
+        QCOMPARE(type->GetFieldType("myLilBitty.e[1].x"), Protobetter::Float);
+        QCOMPARE(type->GetFieldType("myLilBitty.e[1].y"), Protobetter::Float);
+        QCOMPARE(type->GetFieldType("myLilBitty.e[1].z"), Protobetter::Float);
+        QCOMPARE(type->GetFieldType("myLilBitty.e[2].x"), Protobetter::Float);
+        QCOMPARE(type->GetFieldType("myLilBitty.e[2].y"), Protobetter::Float);
+        QCOMPARE(type->GetFieldType("myLilBitty.e[2].z"), Protobetter::Float);
 
         CompareFloats(myStructInstance.GetFloat("myLilBitty.e[0].x"), 0.0f);
         CompareFloats(myStructInstance.GetFloat("myLilBitty.e[0].y"), 0.0f);
@@ -335,14 +359,14 @@ void ProtobetterTest::TestDynamicAPI()
         {
             auto e1x = myStructInstance.GetObject(vectorRootType, "myLilBitty.e[1]");
 
+            QCOMPARE(vectorRootType->GetFieldType("x"), Protobetter::Float);
+            QCOMPARE(vectorRootType->GetFieldType("y"), Protobetter::Float);
+            QCOMPARE(vectorRootType->GetFieldType("z"), Protobetter::Float);
+
             CompareFloats(e1x.GetFloat("x"), -987.0f);
             CompareFloats(e1x.GetFloat("y"), -654.0f);
             CompareFloats(e1x.GetFloat("z"), -321.0f);
         }
-
-        CompareFloats(myStructInstance.GetFloat("myLilBitty.e[1].x"), -987.0f);
-        CompareFloats(myStructInstance.GetFloat("myLilBitty.e[1].y"), -654.0f);
-        CompareFloats(myStructInstance.GetFloat("myLilBitty.e[1].z"), -321.0f);
 
         // verify that myLilBitty.e[2] is zero-ed out
         CompareFloats(myStructInstance.GetFloat("myLilBitty.e[2].x"), 0.0f);
@@ -365,6 +389,9 @@ void ProtobetterTest::TestDynamicAPI()
         CompareFloats(myStructInstance.GetFloat("myLilBitty.e[2].x"), 12.34f);
         CompareFloats(myStructInstance.GetFloat("myLilBitty.e[2].y"), 45.67f);
         CompareFloats(myStructInstance.GetFloat("myLilBitty.e[2].z"), 89.1011f);
+
+        QCOMPARE(type->GetFieldType("tinyBits"), Protobetter::UnsignedBitfield);
+        QCOMPARE(type->GetFieldType("tinyBitsRollover"), Protobetter::UnsignedBitfield);
 
         QCOMPARE(myStructInstance.GetUnsignedBitfield("tinyBits"), 3);
 
