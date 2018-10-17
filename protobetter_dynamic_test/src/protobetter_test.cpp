@@ -143,6 +143,38 @@ namespace
         lilbitty.SetSignedBitfield("f", 25867);
     }
 
+    void VerifyVectorRootTypeDefinition(Protobetter::DynamicType::Ptr vectorRootType)
+    {
+        QCOMPARE(vectorRootType->GetFieldType("id"), Protobetter::UnsignedBitfield);
+        QCOMPARE(vectorRootType->GetFieldType("x"), Protobetter::Float);
+        QCOMPARE(vectorRootType->GetFieldType("y"), Protobetter::Float);
+        QCOMPARE(vectorRootType->GetFieldType("z"), Protobetter::Float);
+    }
+
+    void VerifyLilBittyRootTypeDefinition(Protobetter::DynamicType::Ptr lilBittyRootType)
+    {
+        QCOMPARE(lilBittyRootType->GetFieldType("a"), Protobetter::Float);
+        QCOMPARE(lilBittyRootType->GetFieldType("b"), Protobetter::UnsignedBitfield);
+        QCOMPARE(lilBittyRootType->GetFieldType("c"), Protobetter::UnsignedBitfield);
+        QCOMPARE(lilBittyRootType->GetFieldType("d"), Protobetter::UnsignedBitfield);
+        QCOMPARE(lilBittyRootType->GetFieldType("e[0]"), Protobetter::Object);
+        QCOMPARE(lilBittyRootType->GetFieldType("e[1]"), Protobetter::Object);
+        QCOMPARE(lilBittyRootType->GetFieldType("e[2]"), Protobetter::Object);
+        QCOMPARE(lilBittyRootType->GetFieldType("f"), Protobetter::SignedBitfield);
+    }
+
+    void VerifyBittyliciousRootTypeDefinition(Protobetter::DynamicType::Ptr bittyliciousRootType)
+    {
+        QCOMPARE(bittyliciousRootType->GetFieldType("header"), Protobetter::ByteArray);
+        QCOMPARE(bittyliciousRootType->GetFieldType("b[0]"), Protobetter::Object);
+        QCOMPARE(bittyliciousRootType->GetFieldType("b[1]"), Protobetter::Object);
+        QCOMPARE(bittyliciousRootType->GetFieldType("c[0]"), Protobetter::Int16);
+        QCOMPARE(bittyliciousRootType->GetFieldType("c[1]"), Protobetter::Int16);
+        QCOMPARE(bittyliciousRootType->GetFieldType("c[2]"), Protobetter::Int16);
+        QCOMPARE(bittyliciousRootType->GetFieldType("d"), Protobetter::Object);
+        QCOMPARE(bittyliciousRootType->GetFieldType("e"), Protobetter::SignedBitfield);
+    }
+
     void VerifyLilBittyExpectedValues(Protobetter::DynamicType::Ptr vectorRootType, Protobetter::DynamicObject lilbitty)
     {
         CompareFloats(lilbitty.GetFloat("a"), 123.123f);
@@ -423,6 +455,11 @@ void ProtobetterTest::TestBittylicious()
         auto lilBittyRootType = CreateLilbittyRootType(vectorRootType);
         auto bittyliciousRootType = CreateBittyliciousRootType(vectorRootType, lilBittyRootType);
 
+        /* verify the reflection API returned types are correct */
+        VerifyVectorRootTypeDefinition(vectorRootType);
+        VerifyLilBittyRootTypeDefinition(lilBittyRootType);
+        VerifyBittyliciousRootTypeDefinition(bittyliciousRootType);
+
         /* create instances of these composite types */
         Protobetter::DynamicObject myBittylicious(bittyliciousRootType);
 
@@ -481,6 +518,11 @@ void ProtobetterTest::TestBittylicousFromPtypeFile()
         auto vectorRootType = dynamicTypes.GetType("Vector_c");
         auto lilBittyRootType = dynamicTypes.GetType("LilBity_c");
         auto bittyliciousRootType = dynamicTypes.GetType("Bittylicious_c");
+
+        /* verify the reflection API returned types are correct */
+        VerifyVectorRootTypeDefinition(vectorRootType);
+        VerifyLilBittyRootTypeDefinition(lilBittyRootType);
+        VerifyBittyliciousRootTypeDefinition(bittyliciousRootType);
 
         /* create instances of these composite types */
         Protobetter::DynamicObject myBittylicious(bittyliciousRootType);
