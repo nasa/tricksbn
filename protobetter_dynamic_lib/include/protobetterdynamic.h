@@ -20,6 +20,24 @@
 
 namespace Protobetter
 {
+    enum ProtobetterFieldType
+    {
+        UInt8,
+        UInt16,
+        UInt32,
+        UInt64,
+        Int8,
+        Int16,
+        Int32,
+        Int64,
+        UnsignedBitfield,
+        SignedBitfield,
+        Float,
+        Double,
+        ByteArray,
+        Object
+    };
+
     struct PROTOBETTER_DYNAMIC_LIBSHARED_EXPORT PrototypeMember
     {
         QString name;
@@ -72,9 +90,9 @@ namespace Protobetter
     };
 
     struct PROTOBETTER_DYNAMIC_LIBSHARED_EXPORT FieldAccessor
-    {
+    {        
         FieldAccessor();
-        FieldAccessor(std::size_t size);
+        FieldAccessor(ProtobetterFieldType type, std::size_t size);
 
         std::size_t byteOffset;
         std::size_t size; // in bytes
@@ -82,6 +100,8 @@ namespace Protobetter
         std::size_t bitfieldSize; // in bits - '0' means it's not a bitfield :P
         std::size_t bitOffset; // always 0 for non-bitfield members
         uint64_t packingMask; // all bits = false if not a bitfield o/
+
+        ProtobetterFieldType type;
     };
 
     class PROTOBETTER_DYNAMIC_LIBSHARED_EXPORT DynamicType
@@ -98,6 +118,8 @@ namespace Protobetter
         virtual std::size_t MemberCount() = 0;
 
         virtual bool IsComplete() = 0;
+
+        virtual ProtobetterFieldType GetFieldType(QString name) = 0;
 
         QString Name();
         bool IsRoot();
@@ -125,6 +147,8 @@ namespace Protobetter
 
         static DynamicTypeCollection FromPrototypeCollection(const PrototypeCollection &prototypes);
 
+        QStringList GetRootTypeNames();
+
         // TODO: add API methods to modify elements already added to this collection
 
     private:
@@ -143,17 +167,20 @@ namespace Protobetter
         // TODO: can probably reuse primitive fields since there are a limited number of combos
         // in which they will be created...
 
-        static QSharedPointer<PrimitiveField> CreateNewPrimitiveField(QString name, std::size_t size);
+        static QSharedPointer<PrimitiveField> CreateNewPrimitiveField(QString name, ProtobetterFieldType type, std::size_t size);
 
         std::size_t Size();
         QSharedPointer<QMap<QString, FieldAccessor> > GetMemberAccessors();
         std::size_t MemberCount();
         bool IsComplete();
 
+        ProtobetterFieldType GetFieldType(QString name);
+
     private:
 
-        PrimitiveField(QString name, std::size_t size);
+        PrimitiveField(QString name, ProtobetterFieldType type, std::size_t size);
 
+        ProtobetterFieldType type;
         std::size_t size;
 
         QSharedPointer<QMap<QString, FieldAccessor> > memberAccessors;
@@ -178,6 +205,8 @@ namespace Protobetter
         QSharedPointer<DynamicType> GetField(int fieldIndex);
 
         void Finalize();
+
+        ProtobetterFieldType GetFieldType(QString name);
 
     private:
 
@@ -209,18 +238,21 @@ namespace Protobetter
 
         void Finalize();
 
-        void AddField(QString name, std::size_t width);
+        void AddField(QString name, std::size_t width, bool isSigned);
+
+        ProtobetterFieldType GetFieldType(QString name);
 
     private:
 
         struct Bitfield
         {
             Bitfield();
-            Bitfield(QString name, std::size_t bitOffset, std::size_t length);
+            Bitfield(QString name, std::size_t bitOffset, std::size_t length, bool isSigned);
 
             QString name;
             std::size_t bitOffset;
             std::size_t length;
+            bool isSigned;
         };
 
         BitfieldCollection(std::size_t size);
