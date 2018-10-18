@@ -227,17 +227,20 @@ namespace
 
 void ProtobetterTest::TestPrototypeJsonDeserialization()
 {
-    int value = 42;
-
-    QVERIFY(value > 41);
-
     Protobetter::PrototypeCollection prototypes;
 
-    prototypes.LoadPrototypesFromFile(QString(":/protobetter_test/data/test_c.ptype"));
+    prototypes.LoadPrototypesFromPType(QString(":/protobetter_test/data/test_c.ptype"));
 
     QVERIFY(prototypes.HasType("Vector_c"));
     QVERIFY(prototypes.HasType("LilBity_c"));
     QVERIFY(prototypes.HasType("Bittylicious_c"));
+}
+
+void ProtobetterTest::TestXTCEDeserialization()
+{
+    Protobetter::PrototypeCollection prototypes;
+
+    prototypes.LoadPrototypesFromXTCE(":/protobetter_test/data/habitat_1.xtce");
 }
 
 void ProtobetterTest::TestDynamicAPI()
@@ -499,7 +502,7 @@ void ProtobetterTest::TestBittylicousFromPtypeFile()
 
         Protobetter::PrototypeCollection prototypes;
 
-        prototypes.LoadPrototypesFromFile(QString(":/protobetter_test/data/test_c.ptype"));
+        prototypes.LoadPrototypesFromPType(QString(":/protobetter_test/data/test_c.ptype"));
 
         QVERIFY(prototypes.Size() == 3);
 
@@ -581,7 +584,7 @@ void ProtobetterTest::TestAgainstProtobetterC()
 
         Protobetter::PrototypeCollection prototypes;
 
-        prototypes.LoadPrototypesFromFile(QString(":/protobetter_test/data/test_c.ptype"));
+        prototypes.LoadPrototypesFromPType(QString(":/protobetter_test/data/test_c.ptype"));
 
         QVERIFY(prototypes.Size() == 3);
 

@@ -78,7 +78,9 @@ namespace Protobetter
         // TODO: do some validation on things like making sure bitfield widths are <= size of the word they are packed into,
         //      "bits" and "arraylen" aren't simultaneously specified for same member, and if "bits" is specified,
         //      the "type" better be an acceptable primitive type...
-        void LoadPrototypesFromFile(QString filePath);
+        void LoadPrototypesFromPType(QString filePath);
+
+        void LoadPrototypesFromXTCE(QString filePath);
 
         std::size_t Size() const;
 

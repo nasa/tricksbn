@@ -7,6 +7,8 @@
 #include <QFile>
 #include <QTextStream>
 
+#include <QXmlStreamReader>
+
 #include <stdexcept>
 
 #include "protobetterdynamic.h"
@@ -1533,7 +1535,64 @@ std::size_t Protobetter::PrototypeCollection::Size() const
     return this->rootTypes.size();
 }
 
-void Protobetter::PrototypeCollection::LoadPrototypesFromFile(QString filePath)
+// TODO: move this to the anonymous namespace at the top of file when done testing
+namespace {
+
+    Protobetter::Prototype BuildPrototypeFromXTCESpaceSystem(QXmlStreamReader &reader)
+    {
+        Protobetter::Prototype newType;
+
+        // make sure the most recently read token is actually a 'SpaceSystem' element
+        if (reader.tokenType() != QXmlStreamReader::StartElement &&
+                reader.name() != "SpaceSystem")
+        {
+
+        }
+
+
+    }
+}
+
+void Protobetter::PrototypeCollection::LoadPrototypesFromXTCE(QString filePath)
+{
+    QFile f(filePath);
+
+    if (!f.open(QFile::ReadOnly | QFile::Text))
+    {
+        qInfo("Unable to open XTCE file: %s", filePath.toStdString().c_str());
+        return;
+    }
+
+    QXmlStreamReader reader(&f);
+
+    while (!reader.atEnd())
+    {
+        auto token = reader.readNext();
+
+        if (token == QXmlStreamReader::StartDocument)
+        {
+            // ignore startdoc token
+            continue;
+        }
+
+        if (token == QXmlStreamReader::StartElement)
+        {
+            if (reader.name() == "SpaceSystem")
+            {
+                auto elementAttributes = reader.attributes();
+
+                if (elementAttributes.hasAttribute("name"))
+                {
+                    qDebug("Found a space system w/ attribute 'name' = %s", elementAttributes.value("name").toString().toStdString().c_str());
+                }
+            }
+        }
+    }
+
+    f.close();
+}
+
+void Protobetter::PrototypeCollection::LoadPrototypesFromPType(QString filePath)
 {
     QFile f(filePath);
 
