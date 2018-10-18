@@ -400,6 +400,10 @@ void ProtobetterTest::TestDynamicAPI()
             CompareFloats(e1x.GetFloat("z"), -321.0f);
         }
 
+        CompareFloats(myStructInstance.GetFloat("myLilBitty.e[1].x"), -987.0f);
+        CompareFloats(myStructInstance.GetFloat("myLilBitty.e[1].y"), -654.0f);
+        CompareFloats(myStructInstance.GetFloat("myLilBitty.e[1].z"), -321.0f);
+
         // verify that myLilBitty.e[2] is zero-ed out
         CompareFloats(myStructInstance.GetFloat("myLilBitty.e[2].x"), 0.0f);
         CompareFloats(myStructInstance.GetFloat("myLilBitty.e[2].y"), 0.0f);
