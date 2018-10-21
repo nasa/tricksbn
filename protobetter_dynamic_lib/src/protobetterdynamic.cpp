@@ -454,7 +454,7 @@ bool Protobetter::FieldCollection::IsComplete()
     return this->isComplete;
 }
 
-QSharedPointer<QMap<QString, Protobetter::FieldAccessor> > Protobetter::FieldCollection::GetMemberAccessors()
+QSharedPointer<QMap<QString, Protobetter::FieldAccessor> > Protobetter::FieldCollection::GetMemberMap()
 {
     return this->memberAccessors;
 }
@@ -486,7 +486,7 @@ void Protobetter::FieldCollection::Finalize()
 
         for (int i = 0; i < this->fields.size(); ++i)
         {
-            auto currentMemberAccessors = this->fields[i]->GetMemberAccessors();
+            auto currentMemberAccessors = this->fields[i]->GetMemberMap();
 
             for (auto iter = currentMemberAccessors->constBegin();
                  iter != currentMemberAccessors->constEnd();
@@ -554,7 +554,7 @@ bool Protobetter::BitfieldCollection::IsComplete()
     return this->isComplete;
 }
 
-QSharedPointer<QMap<QString, Protobetter::FieldAccessor> > Protobetter::BitfieldCollection::GetMemberAccessors()
+QSharedPointer<QMap<QString, Protobetter::FieldAccessor> > Protobetter::BitfieldCollection::GetMemberMap()
 {
     return this->memberAccessors;
 }
@@ -692,7 +692,7 @@ bool Protobetter::PrimitiveField::IsComplete()
     return true; // a primitive field is always a complete type
 }
 
-QSharedPointer<QMap<QString, Protobetter::FieldAccessor> > Protobetter::PrimitiveField::GetMemberAccessors()
+QSharedPointer<QMap<QString, Protobetter::FieldAccessor> > Protobetter::PrimitiveField::GetMemberMap()
 {
     return this->memberAccessors;
 }
@@ -763,7 +763,7 @@ QSharedPointer<Protobetter::DynamicType> Protobetter::FieldCollection::GetField(
 }
 
 Protobetter::DynamicObject::DynamicObject(QSharedPointer<Protobetter::DynamicType> type)
-    : memberAccessors(type->GetMemberAccessors()), typeName(type->Name()), ownsData(true)
+    : memberAccessors(type->GetMemberMap()), typeName(type->Name()), ownsData(true)
 {
     if (!type->IsComplete())
     {
@@ -778,7 +778,7 @@ Protobetter::DynamicObject::DynamicObject(QSharedPointer<Protobetter::DynamicTyp
 }
 
 Protobetter::DynamicObject::DynamicObject(QSharedPointer<Protobetter::DynamicType> type, char *data)
-    : memberAccessors(type->GetMemberAccessors()), typeName(type->Name()), size(size), data(data), ownsData(false)
+    : memberAccessors(type->GetMemberMap()), typeName(type->Name()), size(size), data(data), ownsData(false)
 {
 }
 
@@ -815,6 +815,17 @@ Protobetter::DynamicObject::~DynamicObject()
     data = NULL;
 }
 
+uint8_t Protobetter::DynamicObject::GetUInt8(const Protobetter::FieldAccessor &accessor)
+{
+    char *start = this->data + accessor.byteOffset;
+
+    uint8_t value = 0;
+
+    memcpy(&value, start, 1);
+
+    return value;
+}
+
 uint8_t Protobetter::DynamicObject::GetUInt8(QString memberName)
 {
 #ifndef QT_NO_DEBUG
@@ -829,9 +840,14 @@ uint8_t Protobetter::DynamicObject::GetUInt8(QString memberName)
 
     Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
 
+    return this->GetUInt8(accessor);
+}
+
+int8_t Protobetter::DynamicObject::GetInt8(const Protobetter::FieldAccessor &accessor)
+{
     char *start = this->data + accessor.byteOffset;
 
-    uint8_t value = 0;
+    int8_t value = 0;
 
     memcpy(&value, start, 1);
 
@@ -852,13 +868,12 @@ int8_t Protobetter::DynamicObject::GetInt8(QString memberName)
 
     Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
 
-    char *start = this->data + accessor.byteOffset;
+    return this->GetInt8(accessor);
+}
 
-    int8_t value = 0;
-
-    memcpy(&value, start, 1);
-
-    return value;
+uint16_t Protobetter::DynamicObject::GetUInt16(const Protobetter::FieldAccessor &accessor)
+{
+    return qFromBigEndian<quint16>(this->data + accessor.byteOffset);
 }
 
 uint16_t Protobetter::DynamicObject::GetUInt16(QString memberName)
@@ -876,6 +891,11 @@ uint16_t Protobetter::DynamicObject::GetUInt16(QString memberName)
     return qFromBigEndian<quint16>(this->data + this->memberAccessors->value(memberName).byteOffset);
 }
 
+int16_t Protobetter::DynamicObject::GetInt16(const Protobetter::FieldAccessor &accessor)
+{
+    return qFromBigEndian<qint16>(this->data + accessor.byteOffset);
+}
+
 int16_t Protobetter::DynamicObject::GetInt16(QString memberName)
 {
 #ifndef QT_NO_DEBUG
@@ -889,6 +909,11 @@ int16_t Protobetter::DynamicObject::GetInt16(QString memberName)
 #endif
 
     return qFromBigEndian<qint16>(this->data + this->memberAccessors->value(memberName).byteOffset);
+}
+
+uint32_t Protobetter::DynamicObject::GetUInt32(const Protobetter::FieldAccessor &accessor)
+{
+    return qFromBigEndian<quint32>(this->data + accessor.byteOffset);
 }
 
 uint32_t Protobetter::DynamicObject::GetUInt32(QString memberName)
@@ -906,6 +931,11 @@ uint32_t Protobetter::DynamicObject::GetUInt32(QString memberName)
     return qFromBigEndian<quint32>(this->data + this->memberAccessors->value(memberName).byteOffset);
 }
 
+int32_t Protobetter::DynamicObject::GetInt32(const Protobetter::FieldAccessor &accessor)
+{
+    return qFromBigEndian<qint32>(this->data + accessor.byteOffset);
+}
+
 int32_t Protobetter::DynamicObject::GetInt32(QString memberName)
 {
 #ifndef QT_NO_DEBUG
@@ -919,6 +949,11 @@ int32_t Protobetter::DynamicObject::GetInt32(QString memberName)
 #endif
 
     return qFromBigEndian<qint32>(this->data + this->memberAccessors->value(memberName).byteOffset);
+}
+
+uint64_t Protobetter::DynamicObject::GetUInt64(const Protobetter::FieldAccessor &accessor)
+{
+    return qFromBigEndian<quint64>(this->data + accessor.byteOffset);
 }
 
 uint64_t Protobetter::DynamicObject::GetUInt64(QString memberName)
@@ -936,6 +971,11 @@ uint64_t Protobetter::DynamicObject::GetUInt64(QString memberName)
     return qFromBigEndian<quint64>(this->data + this->memberAccessors->value(memberName).byteOffset);
 }
 
+int64_t Protobetter::DynamicObject::GetInt64(const Protobetter::FieldAccessor &accessor)
+{
+    return qFromBigEndian<qint64>(this->data + accessor.byteOffset);
+}
+
 int64_t Protobetter::DynamicObject::GetInt64(QString memberName)
 {
 #ifndef QT_NO_DEBUG
@@ -949,6 +989,19 @@ int64_t Protobetter::DynamicObject::GetInt64(QString memberName)
 #endif
 
     return qFromBigEndian<qint64>(this->data + this->memberAccessors->value(memberName).byteOffset);
+}
+
+float Protobetter::DynamicObject::GetFloat(const Protobetter::FieldAccessor &accessor)
+{
+    char *start = this->data + accessor.byteOffset;
+
+    qint32 swappedData = qFromBigEndian<qint32>(start);
+
+    float value = 0.0f;
+
+    memcpy(&value, &swappedData, 4);
+
+    return value;
 }
 
 float Protobetter::DynamicObject::GetFloat(QString memberName)
@@ -965,13 +1018,18 @@ float Protobetter::DynamicObject::GetFloat(QString memberName)
 
     Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
 
+    return this->GetFloat(accessor);
+}
+
+double Protobetter::DynamicObject::GetDouble(const Protobetter::FieldAccessor &accessor)
+{
     char *start = this->data + accessor.byteOffset;
 
-    qint32 swappedData = qFromBigEndian<qint32>(start);
+    qint64 swappedData = qFromBigEndian<qint64>(start);
 
-    float value = 0.0f;
+    double value = 0.0f;
 
-    memcpy(&value, &swappedData, 4);
+    memcpy(&value, &swappedData, 8);
 
     return value;
 }
@@ -990,15 +1048,12 @@ double Protobetter::DynamicObject::GetDouble(QString memberName)
 
     Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
 
-    char *start = this->data + accessor.byteOffset;
+    return this->GetDouble(accessor);
+}
 
-    qint64 swappedData = qFromBigEndian<qint64>(start);
-
-    double value = 0.0f;
-
-    memcpy(&value, &swappedData, 8);
-
-    return value;
+void Protobetter::DynamicObject::SetUInt8(const Protobetter::FieldAccessor &accessor, uint8_t value)
+{
+    memcpy(this->data + accessor.byteOffset, &value, 1);
 }
 
 void Protobetter::DynamicObject::SetUInt8(QString memberName, uint8_t value)
@@ -1015,9 +1070,12 @@ void Protobetter::DynamicObject::SetUInt8(QString memberName, uint8_t value)
 
     Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
 
-    char *start = this->data + accessor.byteOffset;
+    this->SetUInt8(accessor, value);
+}
 
-    memcpy(start, &value, 1);
+void Protobetter::DynamicObject::SetInt8(const Protobetter::FieldAccessor &accessor, int8_t value)
+{
+    memcpy(this->data + accessor.byteOffset, &value, 1);
 }
 
 void Protobetter::DynamicObject::SetInt8(QString memberName, int8_t value)
@@ -1034,9 +1092,16 @@ void Protobetter::DynamicObject::SetInt8(QString memberName, int8_t value)
 
     Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
 
-    char *start = this->data + accessor.byteOffset;
+    this->SetInt8(accessor, value);
+}
 
-    memcpy(start, &value, 1);
+void Protobetter::DynamicObject::SetUInt16(const Protobetter::FieldAccessor &accessor, uint16_t value)
+{
+    uint16_t swappedValue = 0;
+
+    qToBigEndian<quint16>(value, &swappedValue);
+
+    memcpy(this->data + accessor.byteOffset, &swappedValue, 2);
 }
 
 void Protobetter::DynamicObject::SetUInt16(QString memberName, uint16_t value)
@@ -1051,15 +1116,18 @@ void Protobetter::DynamicObject::SetUInt16(QString memberName, uint16_t value)
 
 #endif
 
-    uint16_t swappedValue = 0;
-
-    qToBigEndian<quint16>(value, &swappedValue);
-
     Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
 
-    char *start = this->data + accessor.byteOffset;
+    this->SetUInt16(accessor, value);
+}
 
-    memcpy(start, &swappedValue, 2);
+void Protobetter::DynamicObject::SetInt16(const Protobetter::FieldAccessor &accessor, int16_t value)
+{
+    int16_t swappedValue = 0;
+
+    qToBigEndian<qint16>(value, &swappedValue);
+
+    memcpy(this->data + accessor.byteOffset, &swappedValue, 2);
 }
 
 void Protobetter::DynamicObject::SetInt16(QString memberName, int16_t value)
@@ -1074,15 +1142,18 @@ void Protobetter::DynamicObject::SetInt16(QString memberName, int16_t value)
 
 #endif
 
-    int16_t swappedValue = 0;
-
-    qToBigEndian<qint16>(value, &swappedValue);
-
     Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
 
-    char *start = this->data + accessor.byteOffset;
+    this->SetInt16(accessor, value);
+}
 
-    memcpy(start, &swappedValue, 2);
+void Protobetter::DynamicObject::SetUInt32(const Protobetter::FieldAccessor &accessor, uint32_t value)
+{
+    uint32_t swappedValue = 0;
+
+    qToBigEndian<quint32>(value, &swappedValue);
+
+    memcpy(this->data + accessor.byteOffset, &swappedValue, 4);
 }
 
 void Protobetter::DynamicObject::SetUInt32(QString memberName, uint32_t value)
@@ -1097,15 +1168,18 @@ void Protobetter::DynamicObject::SetUInt32(QString memberName, uint32_t value)
 
 #endif
 
-    uint32_t swappedValue = 0;
-
-    qToBigEndian<quint32>(value, &swappedValue);
-
     Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
 
-    char *start = this->data + accessor.byteOffset;
+    this->SetUInt32(accessor, value);
+}
 
-    memcpy(start, &swappedValue, 4);
+void Protobetter::DynamicObject::SetInt32(const Protobetter::FieldAccessor &accessor, int32_t value)
+{
+    int32_t swappedValue = 0;
+
+    qToBigEndian<qint32>(value, &swappedValue);
+
+    memcpy(this->data + accessor.byteOffset, &swappedValue, 4);
 }
 
 void Protobetter::DynamicObject::SetInt32(QString memberName, int32_t value)
@@ -1120,15 +1194,18 @@ void Protobetter::DynamicObject::SetInt32(QString memberName, int32_t value)
 
 #endif
 
-    int32_t swappedValue = 0;
-
-    qToBigEndian<qint32>(value, &swappedValue);
-
     Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
 
-    char *start = this->data + accessor.byteOffset;
+    this->SetInt32(accessor, value);
+}
 
-    memcpy(start, &swappedValue, 4);
+void Protobetter::DynamicObject::SetUInt64(const Protobetter::FieldAccessor &accessor, uint64_t value)
+{
+    uint64_t swappedValue = 0;
+
+    qToBigEndian<quint64>(value, &swappedValue);
+
+    memcpy(this->data + accessor.byteOffset, &swappedValue, 8);
 }
 
 void Protobetter::DynamicObject::SetUInt64(QString memberName, uint64_t value)
@@ -1143,15 +1220,18 @@ void Protobetter::DynamicObject::SetUInt64(QString memberName, uint64_t value)
 
 #endif
 
-    uint64_t swappedValue = 0;
-
-    qToBigEndian<quint64>(value, &swappedValue);
-
     Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
 
-    char *start = this->data + accessor.byteOffset;
+    this->SetUInt64(accessor, value);
+}
 
-    memcpy(start, &swappedValue, 8);
+void Protobetter::DynamicObject::SetInt64(const Protobetter::FieldAccessor &accessor, int64_t value)
+{
+    int64_t swappedValue = 0;
+
+    qToBigEndian<qint64>(value, &swappedValue);
+
+    memcpy(this->data + accessor.byteOffset, &swappedValue, 8);
 }
 
 void Protobetter::DynamicObject::SetInt64(QString memberName, int64_t value)
@@ -1166,15 +1246,21 @@ void Protobetter::DynamicObject::SetInt64(QString memberName, int64_t value)
 
 #endif
 
-    int64_t swappedValue = 0;
-
-    qToBigEndian<qint64>(value, &swappedValue);
-
     Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
 
-    char *start = this->data + accessor.byteOffset;
+    this->SetInt64(accessor, value);
+}
 
-    memcpy(start, &swappedValue, 8);
+void Protobetter::DynamicObject::SetFloat(const Protobetter::FieldAccessor &accessor, float value)
+{
+    uint32_t packedValue = 0;
+
+    uint32_t unpackedValue = 0;
+    memcpy(&unpackedValue, &value, 4);
+
+    qToBigEndian<qint32>(unpackedValue, &packedValue);
+
+    memcpy(this->data + accessor.byteOffset, &packedValue, 4);
 }
 
 void Protobetter::DynamicObject::SetFloat(QString memberName, float value)
@@ -1189,18 +1275,21 @@ void Protobetter::DynamicObject::SetFloat(QString memberName, float value)
 
 #endif
 
-    uint32_t packedValue = 0;
-
-    uint32_t unpackedValue = 0;
-    memcpy(&unpackedValue, &value, 4);
-
-    qToBigEndian<qint32>(unpackedValue, &packedValue);
-
     Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
 
-    char *start = this->data + accessor.byteOffset;
+    this->SetFloat(accessor, value);
+}
 
-    memcpy(start, &packedValue, 4);
+void Protobetter::DynamicObject::SetDouble(const Protobetter::FieldAccessor &accessor, double value)
+{
+    uint64_t packedValue = 0;
+
+    uint64_t unpackedValue = 0;
+    memcpy(&unpackedValue, &value, 8);
+
+    qToBigEndian<qint64>(unpackedValue, &packedValue);
+
+    memcpy(this->data + accessor.byteOffset, &packedValue, 8);
 }
 
 void Protobetter::DynamicObject::SetDouble(QString memberName, double value)
@@ -1215,18 +1304,14 @@ void Protobetter::DynamicObject::SetDouble(QString memberName, double value)
 
 #endif
 
-    uint64_t packedValue = 0;
-
-    uint64_t unpackedValue = 0;
-    memcpy(&unpackedValue, &value, 8);
-
-    qToBigEndian<qint64>(unpackedValue, &packedValue);
-
     Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
 
-    char *start = this->data + accessor.byteOffset;
+    this->SetDouble(accessor, value);
+}
 
-    memcpy(start, &packedValue, 8);
+const char * Protobetter::DynamicObject::GetByteArray(const Protobetter::FieldAccessor &accessor)
+{
+    return (this->data + accessor.byteOffset);
 }
 
 const char * Protobetter::DynamicObject::GetByteArray(QString memberName)
@@ -1246,6 +1331,11 @@ const char * Protobetter::DynamicObject::GetByteArray(QString memberName)
     return (this->data + accessor.byteOffset);
 }
 
+void Protobetter::DynamicObject::SetByteArray(const Protobetter::FieldAccessor &accessor, const char *value)
+{
+    memcpy(this->data + accessor.byteOffset, value, accessor.size);
+}
+
 void Protobetter::DynamicObject::SetByteArray(QString memberName, const char *value)
 {
 #ifndef QT_NO_DEBUG
@@ -1263,20 +1353,8 @@ void Protobetter::DynamicObject::SetByteArray(QString memberName, const char *va
     memcpy(this->data + accessor.byteOffset, value, accessor.size);
 }
 
-uint64_t Protobetter::DynamicObject::GetUnsignedBitfield(QString memberName)
+uint64_t Protobetter::DynamicObject::GetUnsignedBitfield(const Protobetter::FieldAccessor &accessor)
 {
-#ifndef QT_NO_DEBUG
-
-    if (!this->memberAccessors->contains(memberName))
-    {
-        QString errMsg = QString("No member named ") + memberName;
-        throw std::invalid_argument(errMsg.toStdString().c_str());
-    }
-
-#endif
-
-    Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
-
     char *fieldStart = this->data + accessor.byteOffset;
 
     if (accessor.size == 1)
@@ -1304,6 +1382,63 @@ uint64_t Protobetter::DynamicObject::GetUnsignedBitfield(QString memberName)
         uint64_t value = qFromBigEndian<quint64>(fieldStart);
 
         return (value & ~accessor.packingMask) >> accessor.bitOffset;
+    }
+
+    return 0;
+}
+
+uint64_t Protobetter::DynamicObject::GetUnsignedBitfield(QString memberName)
+{
+#ifndef QT_NO_DEBUG
+
+    if (!this->memberAccessors->contains(memberName))
+    {
+        QString errMsg = QString("No member named ") + memberName;
+        throw std::invalid_argument(errMsg.toStdString().c_str());
+    }
+
+#endif
+
+    Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
+
+    return this->GetUnsignedBitfield(accessor);
+}
+
+int64_t Protobetter::DynamicObject::GetSignedBitfield(const Protobetter::FieldAccessor &accessor)
+{
+    char *fieldStart = this->data + accessor.byteOffset;
+
+    if (accessor.size == 1)
+    {
+        uint8_t value;
+
+        memcpy(&value, fieldStart, 1);
+
+        return (value & ~accessor.packingMask) >> accessor.bitOffset;
+    }
+    else if (accessor.size == 2)
+    {
+        uint16_t value = qFromBigEndian<quint16>(fieldStart);
+
+        value = (value & ~accessor.packingMask) >> accessor.bitOffset;
+
+        return GetTwosComplementSignedEquivalent(value, accessor.bitfieldSize);
+    }
+    else if (accessor.size == 4)
+    {
+        uint32_t value = qFromBigEndian<quint32>(fieldStart);
+
+        value = (value & ~accessor.packingMask) >> accessor.bitOffset;
+
+        return GetTwosComplementSignedEquivalent(value, accessor.bitfieldSize);
+    }
+    else if (accessor.size == 8)
+    {
+        uint64_t value = qFromBigEndian<quint64>(fieldStart);
+
+        value = (value & ~accessor.packingMask) >> accessor.bitOffset;
+
+        return GetTwosComplementSignedEquivalent(value, accessor.bitfieldSize);
     }
 
     return -1;
@@ -1323,58 +1458,11 @@ int64_t Protobetter::DynamicObject::GetSignedBitfield(QString memberName)
 
     Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
 
-    char *fieldStart = this->data + accessor.byteOffset;
-
-    if (accessor.size == 1)
-    {
-        uint8_t value;
-
-        memcpy(&value, fieldStart, 1);
-
-        return (value & ~accessor.packingMask) >> accessor.bitOffset;
-    }
-    else if (accessor.size == 2)
-    {
-        uint16_t value = qFromBigEndian<quint16>(fieldStart);
-
-        value = (value & ~accessor.packingMask) >> accessor.bitOffset;
-
-        return GetTwosComplementSignedEquivalent(value, accessor.bitfieldSize);
-    }
-    else if (accessor.size == 4)
-    {
-        uint32_t value = qFromBigEndian<quint32>(fieldStart);
-
-        value = (value & ~accessor.packingMask) >> accessor.bitOffset;
-
-        return GetTwosComplementSignedEquivalent(value, accessor.bitfieldSize);
-    }
-    else if (accessor.size == 8)
-    {
-        uint64_t value = qFromBigEndian<quint64>(fieldStart);
-
-        value = (value & ~accessor.packingMask) >> accessor.bitOffset;
-
-        return GetTwosComplementSignedEquivalent(value, accessor.bitfieldSize);
-    }
-
-    return -1;
+    return this->GetSignedBitfield(accessor);
 }
 
-void Protobetter::DynamicObject::SetSignedBitfield(QString memberName, int64_t value)
+void Protobetter::DynamicObject::SetSignedBitfield(const Protobetter::FieldAccessor &accessor, int64_t value)
 {
-#ifndef QT_NO_DEBUG
-
-    if (!this->memberAccessors->contains(memberName))
-    {
-        QString errMsg = QString("No member named ") + memberName;
-        throw std::invalid_argument(errMsg.toStdString().c_str());
-    }
-
-#endif
-
-    Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
-
     char *fieldStart = this->data + accessor.byteOffset;
 
     uint64_t unsignedContainer = GetTwosComplementUnsignedEquivalent(value, accessor.bitfieldSize);
@@ -1415,7 +1503,7 @@ void Protobetter::DynamicObject::SetSignedBitfield(QString memberName, int64_t v
     }
 }
 
-void Protobetter::DynamicObject::SetUnsignedBitfield(QString memberName, uint64_t value)
+void Protobetter::DynamicObject::SetSignedBitfield(QString memberName, int64_t value)
 {
 #ifndef QT_NO_DEBUG
 
@@ -1429,6 +1517,11 @@ void Protobetter::DynamicObject::SetUnsignedBitfield(QString memberName, uint64_
 
     Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
 
+    this->SetSignedBitfield(accessor, value);
+}
+
+void Protobetter::DynamicObject::SetUnsignedBitfield(const Protobetter::FieldAccessor &accessor, uint64_t value)
+{
     char *fieldStart = this->data + accessor.byteOffset;
 
     if (accessor.size == 1)
@@ -1473,6 +1566,28 @@ void Protobetter::DynamicObject::SetUnsignedBitfield(QString memberName, uint64_
     }
 }
 
+void Protobetter::DynamicObject::SetUnsignedBitfield(QString memberName, uint64_t value)
+{
+#ifndef QT_NO_DEBUG
+
+    if (!this->memberAccessors->contains(memberName))
+    {
+        QString errMsg = QString("No member named ") + memberName;
+        throw std::invalid_argument(errMsg.toStdString().c_str());
+    }
+
+#endif
+
+    Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
+
+    this->SetUnsignedBitfield(accessor, value);
+}
+
+Protobetter::DynamicObject Protobetter::DynamicObject::GetObject(QSharedPointer<DynamicType> type, const Protobetter::FieldAccessor &accessor)
+{
+    return Protobetter::DynamicObject(type, this->data + accessor.byteOffset);
+}
+
 Protobetter::DynamicObject Protobetter::DynamicObject::GetObject(QSharedPointer<DynamicType> type, QString memberName)
 {
 #ifndef QT_NO_DEBUG
@@ -1496,7 +1611,12 @@ Protobetter::DynamicObject Protobetter::DynamicObject::GetObject(QSharedPointer<
     return Protobetter::DynamicObject(type, fieldStart);
 }
 
-void Protobetter::DynamicObject::SetObject(QString memberName, QSharedPointer<DynamicType> type, const DynamicObject &object)
+void Protobetter::DynamicObject::SetObject(const Protobetter::FieldAccessor &accessor, const DynamicObject &object)
+{
+    memcpy(this->data + accessor.byteOffset, object.Data(), accessor.size);
+}
+
+void Protobetter::DynamicObject::SetObject(QString memberName, const DynamicObject &object)
 {
 #ifndef QT_NO_DEBUG
 
@@ -1538,19 +1658,19 @@ std::size_t Protobetter::PrototypeCollection::Size() const
 // TODO: move this to the anonymous namespace at the top of file when done testing
 namespace {
 
-    Protobetter::Prototype BuildPrototypeFromXTCESpaceSystem(QXmlStreamReader &reader)
-    {
-        Protobetter::Prototype newType;
+//    Protobetter::Prototype BuildPrototypeFromXTCESpaceSystem(QXmlStreamReader &reader)
+//    {
+//        Protobetter::Prototype newType;
 
-        // make sure the most recently read token is actually a 'SpaceSystem' element
-        if (reader.tokenType() != QXmlStreamReader::StartElement &&
-                reader.name() != "SpaceSystem")
-        {
+//        // make sure the most recently read token is actually a 'SpaceSystem' element
+//        if (reader.tokenType() != QXmlStreamReader::StartElement &&
+//                reader.name() != "SpaceSystem")
+//        {
 
-        }
+//        }
 
 
-    }
+//    }
 }
 
 void Protobetter::PrototypeCollection::LoadPrototypesFromXTCE(QString filePath)

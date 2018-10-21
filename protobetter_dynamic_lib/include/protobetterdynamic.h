@@ -115,7 +115,7 @@ namespace Protobetter
         // returns size in bytes
         virtual std::size_t Size() = 0;
 
-        virtual QSharedPointer<QMap<QString, FieldAccessor> > GetMemberAccessors() = 0;
+        virtual QSharedPointer<QMap<QString, FieldAccessor> > GetMemberMap() = 0;
 
         virtual std::size_t MemberCount() = 0;
 
@@ -166,13 +166,10 @@ namespace Protobetter
 
         typedef QSharedPointer<PrimitiveField> Ptr;
 
-        // TODO: can probably reuse primitive fields since there are a limited number of combos
-        // in which they will be created...
-
         static QSharedPointer<PrimitiveField> CreateNewPrimitiveField(QString name, ProtobetterFieldType type, std::size_t size);
 
         std::size_t Size();
-        QSharedPointer<QMap<QString, FieldAccessor> > GetMemberAccessors();
+        QSharedPointer<QMap<QString, FieldAccessor> > GetMemberMap();
         std::size_t MemberCount();
         bool IsComplete();
 
@@ -199,7 +196,7 @@ namespace Protobetter
         static QSharedPointer<FieldCollection> CreateFieldFromRootType(QString fieldName, QSharedPointer<FieldCollection> root, bool finalize = false);
 
         std::size_t Size();
-        QSharedPointer<QMap<QString, FieldAccessor> > GetMemberAccessors();
+        QSharedPointer<QMap<QString, FieldAccessor> > GetMemberMap();
         std::size_t MemberCount();
         bool IsComplete();
 
@@ -234,7 +231,7 @@ namespace Protobetter
         std::size_t BitsAvailable();
 
         std::size_t Size();
-        QSharedPointer<QMap<QString, FieldAccessor> > GetMemberAccessors();
+        QSharedPointer<QMap<QString, FieldAccessor> > GetMemberMap();
         std::size_t MemberCount();
         bool IsComplete();
 
@@ -279,7 +276,48 @@ namespace Protobetter
 
         DynamicObject& operator=(const DynamicObject &other);
 
-        // all of your type-specific Get()/Set() methods should go here
+        // APIs for accessing field data via FieldAccessors
+        // which can be obtained from the associated DynamicType
+        uint8_t GetUInt8(const Protobetter::FieldAccessor &accessor);
+        uint16_t GetUInt16(const Protobetter::FieldAccessor &accessor);
+        uint32_t GetUInt32(const Protobetter::FieldAccessor &accessor);
+        uint64_t GetUInt64(const Protobetter::FieldAccessor &accessor);
+
+        int8_t GetInt8(const Protobetter::FieldAccessor &accessor);
+        int16_t GetInt16(const Protobetter::FieldAccessor &accessor);
+        int32_t GetInt32(const Protobetter::FieldAccessor &accessor);
+        int64_t GetInt64(const Protobetter::FieldAccessor &accessor);
+
+        float GetFloat(const Protobetter::FieldAccessor &accessor);
+        double GetDouble(const Protobetter::FieldAccessor &accessor);
+
+        uint64_t GetUnsignedBitfield(const Protobetter::FieldAccessor &accessor);
+        int64_t GetSignedBitfield(const Protobetter::FieldAccessor &accessor);
+
+        DynamicObject GetObject(QSharedPointer<DynamicType> type, const Protobetter::FieldAccessor &accessor);
+
+        void SetUInt8(const Protobetter::FieldAccessor &accessor, uint8_t value);
+        void SetUInt16(const Protobetter::FieldAccessor &accessor, uint16_t value);
+        void SetUInt32(const Protobetter::FieldAccessor &accessor, uint32_t value);
+        void SetUInt64(const Protobetter::FieldAccessor &accessor, uint64_t value);
+
+        void SetInt8(const Protobetter::FieldAccessor &accessor, int8_t value);
+        void SetInt16(const Protobetter::FieldAccessor &accessor, int16_t value);
+        void SetInt32(const Protobetter::FieldAccessor &accessor, int32_t value);
+        void SetInt64(const Protobetter::FieldAccessor &accessor, int64_t value);
+
+        void SetFloat(const Protobetter::FieldAccessor &accessor, float value);
+        void SetDouble(const Protobetter::FieldAccessor &accessor, double value);
+
+        void SetUnsignedBitfield(const Protobetter::FieldAccessor &accessor, uint64_t value);
+        void SetSignedBitfield(const Protobetter::FieldAccessor &accessor, int64_t value);
+
+        const char * GetByteArray(const Protobetter::FieldAccessor &accessor);
+        void SetByteArray(const Protobetter::FieldAccessor &accessor, const char *value);
+
+        void SetObject(const Protobetter::FieldAccessor &accessor, const DynamicObject &object);
+
+        // convenience methods for grabbing member data by name
         uint8_t GetUInt8(QString memberName);
         uint16_t GetUInt16(QString memberName);
         uint32_t GetUInt32(QString memberName);
@@ -317,7 +355,7 @@ namespace Protobetter
         const char * GetByteArray(QString memberName);
         void SetByteArray(QString memberName, const char *value);
 
-        void SetObject(QString memberName, QSharedPointer<DynamicType> type, const DynamicObject &object);
+        void SetObject(QString memberName, const DynamicObject &object);
 
         const char * Data() const;
         void SetData(const char *data);
