@@ -3,6 +3,8 @@
 
 #include <cstring>
 
+#include <stdint.h>
+
 #include <QString>
 #include <QMap>
 #include <QList>
