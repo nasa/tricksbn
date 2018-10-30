@@ -421,7 +421,7 @@ void ProtobetterTest::TestDynamicAPI()
             tempVector.SetFloat("z", 89.1011f);
 
             // we're going to set myLilBitty.e[2]'s vector field from tempVector's data
-            myStructInstance.SetObject("myLilBitty.e[2]", vectorRootType, tempVector);
+            myStructInstance.SetObject("myLilBitty.e[2]", tempVector);
         }
 
         // this should now be equal to what the temp vector's data was before...
