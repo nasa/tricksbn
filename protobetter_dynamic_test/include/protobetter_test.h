@@ -12,6 +12,7 @@ class ProtobetterTest : public QObject
 private slots:
 
     void TestPrototypeJsonDeserialization();
+    void TestAmpsPrototypeJsonDeserialization();
     void TestXTCEDeserialization();
     void TestDynamicAPI();
     void TestBittylicious();

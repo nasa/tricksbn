@@ -236,6 +236,17 @@ void ProtobetterTest::TestPrototypeJsonDeserialization()
     QVERIFY(prototypes.HasType("Bittylicious_c"));
 }
 
+void ProtobetterTest::TestAmpsPrototypeJsonDeserialization()
+{
+    Protobetter::PrototypeCollection prototypes;
+
+    prototypes.LoadPrototypesFromPType(QString(":/protobetter_test/data/habitat_ptypes/protobetter_AMPS.ptype"));
+
+    QVERIFY(prototypes.HasType("PDU1"));
+    QVERIFY(prototypes.HasType("MBSU1"));
+    QVERIFY(prototypes.HasType("SET_PDU1_INPUT_BUS_SELECT_t"));
+}
+
 void ProtobetterTest::TestXTCEDeserialization()
 {
     Protobetter::PrototypeCollection prototypes;
