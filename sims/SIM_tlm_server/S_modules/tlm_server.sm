@@ -1,0 +1,11 @@
+
+// TODO: make sure this doesn't cause issues w/ multiple include
+// Trick default system classes include
+#include "sim_objects/default_trick_sys.sm"
+
+##include "tlm_server/include/tlm_server.hh"
+
+class TelemetryServer : public Trick::SimObject
+{
+
+}
