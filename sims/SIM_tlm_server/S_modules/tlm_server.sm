@@ -7,5 +7,14 @@
 
 class TelemetryServer : public Trick::SimObject
 {
+public:
 
-}
+    TestData data;
+
+    TelemetryServer() 
+    {
+        ("initialization") InitServer( &data );
+        (0.01, "scheduled") Run( &data );
+        ("shutdown") Shutdown( &data );
+    }
+};

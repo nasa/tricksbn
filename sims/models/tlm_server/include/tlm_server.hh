@@ -10,8 +10,8 @@ typedef struct
 
 } TestData;
 
-void InitServer();
-void Run();
-// void Shutdown();
+void InitServer(TestData &data);
+void Run(TestData &data);
+void Shutdown(TestData &data);
 
 #endif /* __TRICK_TLM_SERVER_H__ */
