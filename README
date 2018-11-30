@@ -4,9 +4,20 @@
 
 "Because code without data is useless..." - Danrae Pray
 
-This library is a fully-featured c++ version of protobetter which expands upon the previous serialization library with the addition of dynamic-typing and reflection capabilities in c++.
+This library is a fully-featured c++ version of protobetter which expands upon the previous serialization library with the addition of dynamic-typing and type-introspection capabilities in c++.
 
-This library was designed as the next iteration of protobetter with the goal of providing native c/c++ applications with the ability to dynamically create composite types at runtime and "reflect" on the details of their type information... all while still providing automagic serialization behind the scenes.
+***************************************************************************
+*************************** Build Steps ***********************************
+***************************************************************************
 
-While ProtobetterDynamic has a fully-dynamic type system which is made available through a simple c++ API, there is also a (preferred) mechanism for defining these types in JSON objects.  For better integration with our existing capabilities at NASA, an interface has been created for this library which allows c++ applications to load / interpret *.ptype files (containing type definitions) at runtime.  Type definitions are dynamically generated which can be used to read/write structured data as you would expect in any other dynamically typed language.  Moreover, once the types have been interpreted, the type information can be queried at any time during program exection, allowing for better automation tools to be built & more code-reuse during integration/testing.
+1) Install Qt5 w/ QtCreator
+2) Load top-level project
+3) Build & run in Qt creator like any other command line Qt app
+
  
+***************************************************************************
+*************************** Usage Notes ***********************************
+***************************************************************************
+
+- To see the usage of the dynamic API, see ProtobetterTest::TestDynamicAPI() in protobetter_test.cpp
+- To see how to use this library w/ *.ptype definitions, see ProtobetterTest::TestBittylicousFromPtypeFile() in protobetter_test.cpp
