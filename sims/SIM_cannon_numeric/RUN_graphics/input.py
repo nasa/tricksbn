@@ -4,6 +4,8 @@ execfile("Modified_data/realtime.py")
 # Start the Cannonball Graphics Client
 #==========================================
 
+tlmServer.configData.tvmFileDir = "../models/bob"
+
 varServerPort = trick.var_server_get_port();
 CannonDisplay_path = "../models/graphics/dist/CannonDisplay.jar"
 

@@ -10,17 +10,21 @@ LIBRARY DEPENDENCY:
 #ifndef __TRICK_TLM_SERVER_H__
 #define __TRICK_TLM_SERVER_H__
 
+#include <string>
+
 typedef struct
 {
-    int a;
-    int b;
+    std::string tvmFileDir;
 
-    int result;
+} TelemetryServerConfig;
 
-} TestData;
+typedef struct
+{
 
-void InitTlmServer(TestData *data);
-void RunTlmServer(TestData *data);
-void ShutdownTlmServer(TestData *data);
+} TelemetryServerState;
+
+void InitTlmServer(TelemetryServerConfig *data);
+void RunTlmServer(TelemetryServerState *data);
+void ShutdownTlmServer(TelemetryServerState *data);
 
 #endif /* __TRICK_TLM_SERVER_H__ */

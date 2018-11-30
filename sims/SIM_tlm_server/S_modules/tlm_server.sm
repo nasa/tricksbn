@@ -17,12 +17,13 @@ class TelemetryServer : public Trick::SimObject
 {
 public:
 
-    TestData data;
+    TelemetryServerConfig configData;
+    TelemetryServerState stateData;
 
     TelemetryServer() 
     {
-        ("initialization") InitTlmServer( &data );
-        (0.01, "scheduled") RunTlmServer( &data );
-        ("shutdown") ShutdownTlmServer( &data );
+        ("initialization") InitTlmServer( &configData );
+        (0.01, "scheduled") RunTlmServer( &stateData );
+        ("shutdown") ShutdownTlmServer( &stateData );
     }
 };

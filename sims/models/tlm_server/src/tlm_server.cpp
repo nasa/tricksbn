@@ -2,19 +2,19 @@
 
 #include <iostream>
 
-void InitTlmServer(TestData *data)
+void InitTlmServer(TelemetryServerConfig *config)
 {
     // you can grab all inputs from the python input file and
     // do all your server initialization based on that here...
 
+    std::cout << "TELEMETRY_SERVER: TVM File Directory = " << config->tvmFileDir << std::endl;
 }
 
-void RunTlmServer(TestData *data)
+void RunTlmServer(TelemetryServerState *data)
 {
     // this doesn't execute while sim is frozen
 }
 
-void ShutdownTlmServer(TestData *data)
+void ShutdownTlmServer(TelemetryServerState *data)
 {
-    std::cout << "result = " << data->result << std::endl;
 }
