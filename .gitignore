@@ -1,1 +1,5 @@
 build/
+**/S_default.dat
+**/makefile
+**/S_source.hh
+trick/
