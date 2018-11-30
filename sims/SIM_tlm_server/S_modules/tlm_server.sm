@@ -13,8 +13,8 @@ public:
 
     TelemetryServer() 
     {
-        ("initialization") InitServer( &data );
-        (0.01, "scheduled") Run( &data );
-        ("shutdown") Shutdown( &data );
+        ("initialization") InitTlmServer( &data );
+        (0.01, "scheduled") RunTlmServer( &data );
+        ("shutdown") ShutdownTlmServer( &data );
     }
 };
