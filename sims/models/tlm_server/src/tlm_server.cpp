@@ -8,6 +8,9 @@ void InitTlmServer(TelemetryServerConfig *config)
     // do all your server initialization based on that here...
 
     std::cout << "TELEMETRY_SERVER: TVM File Directory = " << config->tvmFileDir << std::endl;
+
+    if (config->prototypes.HasType("bob"))
+        std::cout << "hello protobetter o/" << std::endl;
 }
 
 void RunTlmServer(TelemetryServerState *data)
