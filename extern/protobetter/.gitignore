@@ -1,0 +1,6 @@
+build-*/
+build/
+*.pro.user
+**/*.autosave/**
+*.swp
+.vscode/

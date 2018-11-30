@@ -1,0 +1,23 @@
+***************************************************************************
+************************ ProtobetterDynamic *******************************
+***************************************************************************
+
+"Because code without data is useless..." - Danrae Pray
+
+This library is a fully-featured c++ version of protobetter which expands upon the previous serialization library with the addition of dynamic-typing and type-introspection capabilities in c++.
+
+***************************************************************************
+*************************** Build Steps ***********************************
+***************************************************************************
+
+1) Install Qt5 w/ QtCreator
+2) Load top-level project
+3) Build & run in Qt creator like any other command line Qt app
+
+ 
+***************************************************************************
+*************************** Usage Notes ***********************************
+***************************************************************************
+
+- To see the usage of the dynamic API, see ProtobetterTest::TestDynamicAPI() in protobetter_test.cpp
+- To see how to use this library w/ *.ptype definitions, see ProtobetterTest::TestBittylicousFromPtypeFile() in protobetter_test.cpp

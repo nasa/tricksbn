@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/protobetter_test">
+        <file>data/test_c.ptype</file>
+        <file>data/test_c_vector.ptype</file>
+        <file>data/habitat.xtce</file>
+        <file>data/habitat_1.xtce</file>
+        <file>data/habitat_ptypes/protobetter_AMPS.ptype</file>
+    </qresource>
+</RCC>
