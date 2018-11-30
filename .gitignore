@@ -3,3 +3,11 @@ build/
 **/makefile
 **/S_source.hh
 trick/
+DP_Product/
+S_job_execution
+S_run_summary
+**/log_frame*
+**/send_hs
+**/varserver_log
+**/S_main*
+**/S_sie.resource
