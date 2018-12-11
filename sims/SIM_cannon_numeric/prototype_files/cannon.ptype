@@ -1,0 +1,29 @@
+{
+    {
+        "typeName":"Regula_Falsi",
+
+        "members":
+        [
+            {"name":"primaryHeader", "type":"bytearray", "arraylen":6},
+            {"name":"secondaryHeader", "type":"bytearray", "arraylen":6},
+            {"name":"lower_set", "type":"int16_t", "bits":4},
+            {"name":"upper_set", "type":"int16_t", "bits":3},
+            {"name":"delta_time", "type":"double"}
+        ]
+    },
+    {
+        "typeName":"Struct_Cannon",
+
+        "members":
+        [
+            {"name":"primaryHeader", "type":"bytearray", "arraylen":6},
+            {"name":"secondaryHeader", "type":"bytearray", "arraylen":6},
+            {"name":"rf", "type":"Regula_Falsi"},
+            {"name":"impact", "type":"float"},
+
+            {"name":"pos", "type":"float", "arraylen":2},
+            {"name":"vel", "type":"float", "arraylen":2},
+            {"name":"mystring", "type":"bytearray", "arraylen":512}
+        ]
+    }    
+}

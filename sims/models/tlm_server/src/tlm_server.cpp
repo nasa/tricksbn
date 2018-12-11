@@ -21,13 +21,17 @@ void InitTlmServer(TelemetryServerConfig *config)
 
     for (int i = 0; i < tvmFiles.length(); ++i)
     {
-        std::cout << tvmFiles.at(i).toLocal8Bit().constData() << std::endl;
+        QFileInfo file(tvmFileDir, tvmFiles.at(i));
+
+        std::cout << "filepath = " << file.absoluteFilePath().toStdString().c_str() << std::endl;
+
+        config->prototypes.LoadPrototypesFromPType(file.absoluteFilePath());
     }
 
-    if (config->prototypes.HasType("bob"))
-        std::cout << "hello bob o/" << std::endl;
+    if (config->prototypes.HasType("Struct_Cannon"))
+        std::cout << "loaded cannon type successfully!" << std::endl;
     else
-        std::cout << "hello protobetter o/" << std::endl;
+        std::cout << "failed to load cannon type..." << std::endl;
 }
 
 void RunTlmServer(TelemetryServerState *data)
