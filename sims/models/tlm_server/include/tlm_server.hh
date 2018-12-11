@@ -30,6 +30,7 @@ typedef struct
 #endif
 
     std::string tvmFileDir;
+    std::string prototypeFileDir;
 
 } TelemetryServerConfig;
 

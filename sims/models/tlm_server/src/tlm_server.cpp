@@ -13,19 +13,24 @@ void InitTlmServer(TelemetryServerConfig *config)
     // you can grab all inputs from the python input file and
     // do all your server initialization based on that here...
 
-    std::cout << "TELEMETRY_SERVER: TVM File Directory = " << config->tvmFileDir << std::endl;
-
     QDir tvmFileDir(QString(config->tvmFileDir.c_str()));
+    QDir prototypeFileDir(QString(config->prototypeFileDir.c_str()));
 
     QStringList tvmFiles = tvmFileDir.entryList(QStringList() << "*.tvm", QDir::Files);
+    QStringList prototypeFiles = prototypeFileDir.entryList(QStringList() << "*.ptype", QDir::Files);
 
     for (int i = 0; i < tvmFiles.length(); ++i)
     {
-        QFileInfo file(tvmFileDir, tvmFiles.at(i));
+        QFileInfo tvmFile(tvmFileDir, tvmFiles.at(i));
 
-        std::cout << "filepath = " << file.absoluteFilePath().toStdString().c_str() << std::endl;
+    }
 
-        config->prototypes.LoadPrototypesFromPType(file.absoluteFilePath());
+    for (int i = 0; i < prototypeFiles.length(); ++i)
+    {
+        QFileInfo prototypeFile(prototypeFileDir, prototypeFiles.at(i));
+
+        // TODO: load a prototype file - not tvm files here
+        config->prototypes.LoadPrototypesFromPType(prototypeFile.absoluteFilePath());
     }
 
     if (config->prototypes.HasType("Struct_Cannon"))

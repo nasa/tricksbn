@@ -1,4 +1,4 @@
-{
+[
     {
         "typeName":"Regula_Falsi",
 
@@ -26,4 +26,4 @@
             {"name":"mystring", "type":"bytearray", "arraylen":512}
         ]
     }    
-}
+]
