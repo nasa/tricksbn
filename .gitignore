@@ -1,3 +1,4 @@
+.vscode
 build/
 **/S_default.dat
 **/makefile
