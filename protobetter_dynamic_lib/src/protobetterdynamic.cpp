@@ -1,5 +1,6 @@
 #include <cstring>
 #include <bitset>
+#include <iostream>
 
 #include <QtGlobal>
 
@@ -1718,7 +1719,7 @@ void Protobetter::PrototypeCollection::LoadPrototypesFromPType(QString filePath)
 
     if (!f.open(QFile::ReadOnly | QFile::Text))
     {
-        qInfo("Unable to open ptype file: %s", filePath.toStdString().c_str());
+        std::cout << "PrototypeCollection ERROR: Unable to open ptype file: " << filePath.toStdString().c_str() << std::endl;
         return;
     }
 
@@ -1729,7 +1730,7 @@ void Protobetter::PrototypeCollection::LoadPrototypesFromPType(QString filePath)
 
     if (jsonDoc.isNull())
     {
-        qInfo( "Unable to parse json document: %s", filePath.toStdString().c_str());
+        std::cout << "PrototypeCollection ERROR: Unable to parse json document: " << filePath.toStdString().c_str() << std::endl;
     }
     else if (jsonDoc.isArray())
     {
