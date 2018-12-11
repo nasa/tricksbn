@@ -6,6 +6,8 @@
 #include <QString>
 #include <QStringList>
 
+#include <QJsonObject>
+
 void InitTlmServer(TelemetryServerConfig *config)
 {
     // you can grab all inputs from the python input file and
