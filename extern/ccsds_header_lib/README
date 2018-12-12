@@ -1,0 +1,5 @@
+Usage: This library is meant to be compiled from source and used in your non-CFS application.
+
+To use this in an application, you only have to include a single top-level header-file "ccsds_header_lib.h" and link in the definitions from compiled cfe_sb_msg_id_util.c.  The top-level CMakeLists.txt is only here for building tests and to provide an example of how to include the library / source file in your application build process.
+
+In "ccsds_header_lib.h", there are some mission-specific configuration parameters followed by the core includes... don't worry about the core includes.  Just setup the mission-specific config params according to your needs and have fun ;)
