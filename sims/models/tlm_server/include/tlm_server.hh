@@ -5,6 +5,7 @@ LIBRARY DEPENDENCY:
     (
         (tlm_server/src/tlm_server.cpp)
         (../../extern/protobetter/protobetter_dynamic_lib/src/protobetterdynamic.cpp)
+        (../../extern/ccsds_header_lib/src/cfe/cfe_sb_msg_id_util.c)
     )
 */
 
@@ -16,6 +17,7 @@ LIBRARY DEPENDENCY:
 #if !defined(TRICK_ICG) && !defined(SWIG)
 
 #include "protobetterdynamic.h"
+#include "ccsds_header_lib.h"
 
 #endif
 
