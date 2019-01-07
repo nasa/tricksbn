@@ -8,10 +8,23 @@
 
 #include <QJsonObject>
 
+#include "protobetterdynamic.h"
+
+#include "trick/MemoryManager.hh"
+
+namespace {
+
+    extern Trick::MemoryManager *trick_MM;
+
+    Protobetter::PrototypeCollection *prototypes = nullptr;
+}
+
 void InitTlmServer(TelemetryServerConfig *config)
 {
     // you can grab all inputs from the python input file and
     // do all your server initialization based on that here...
+
+    prototypes = new Protobetter::PrototypeCollection;
 
     QDir tvmFileDir(QString(config->tvmFileDir.c_str()));
     QDir prototypeFileDir(QString(config->prototypeFileDir.c_str()));
@@ -30,10 +43,10 @@ void InitTlmServer(TelemetryServerConfig *config)
         QFileInfo prototypeFile(prototypeFileDir, prototypeFiles.at(i));
 
         // TODO: load a prototype file - not tvm files here
-        config->prototypes.LoadPrototypesFromPType(prototypeFile.absoluteFilePath());
+        prototypes->LoadPrototypesFromPType(prototypeFile.absoluteFilePath());
     }
 
-    if (config->prototypes.HasType("Struct_Cannon"))
+    if (prototypes->HasType("Struct_Cannon"))
         std::cout << "loaded cannon type successfully!" << std::endl;
     else
         std::cout << "failed to load cannon type..." << std::endl;

@@ -14,22 +14,8 @@ LIBRARY DEPENDENCY:
 
 #include <string>
 
-#if !defined(TRICK_ICG) && !defined(SWIG)
-
-#include "protobetterdynamic.h"
-#include "ccsds_header_lib.h"
-
-#endif
-
 typedef struct
 {
-
-// TODO: doesn't this mess up offsets for memory manager?
-#if !defined(TRICK_ICG) && !defined(SWIG)
-
-    Protobetter::PrototypeCollection prototypes;
-
-#endif
 
     std::string tvmFileDir;
     std::string prototypeFileDir;
