@@ -74,7 +74,7 @@ void TrickSbnTest::QVariantTest()
 
     // test 8-byte integer to bitfield conversion
     int64_t int64Data = 11;
-    QVariant int64Variant(int64Data);
+    QVariant int64Variant = QVariant::fromValue(int64Data);
 
     QVariantTestData testData;
 

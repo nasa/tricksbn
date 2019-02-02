@@ -187,13 +187,13 @@ QVariant TrickMemoryManagerClient::GetData(TrickFieldAccessor &accessor)
     {
         int64_t data = GetTrickInt(accessor.address, accessor.size);
 
-        value = data;
+        value.setValue(data);
     }
     else if (accessor.type == TrickFieldAccessor::UInt)
     {
         uint64_t data = GetTrickUInt(accessor.address, accessor.size);
 
-        value = data;
+        value.setValue(data);
     }
 
     return value;

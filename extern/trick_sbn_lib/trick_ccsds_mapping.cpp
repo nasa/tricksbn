@@ -62,7 +62,7 @@ QVariant TrickVariableMapping::GetProtobetterField(int memberIndex)
     }
     else if (this->ccsdsFieldTypes[memberIndex] == Protobetter::UInt64)
     {
-        return QVariant(this->data->GetUInt64(this->ccsdsFieldNames[memberIndex]));
+        return QVariant::fromValue(this->data->GetUInt64(this->ccsdsFieldNames[memberIndex]));
     }
     else if (this->ccsdsFieldTypes[memberIndex] == Protobetter::Int8)
     {
@@ -78,15 +78,15 @@ QVariant TrickVariableMapping::GetProtobetterField(int memberIndex)
     }
     else if (this->ccsdsFieldTypes[memberIndex] == Protobetter::Int64)
     {
-        return QVariant(this->data->GetInt64(this->ccsdsFieldNames[memberIndex]));
+        return QVariant::fromValue(this->data->GetInt64(this->ccsdsFieldNames[memberIndex]));
     }
     else if (this->ccsdsFieldTypes[memberIndex] == Protobetter::UnsignedBitfield)
     {
-        return QVariant(this->data->GetUnsignedBitfield(this->ccsdsFieldNames[memberIndex]));
+        return QVariant::fromValue(this->data->GetUnsignedBitfield(this->ccsdsFieldNames[memberIndex]));
     }
     else if (this->ccsdsFieldTypes[memberIndex] == Protobetter::SignedBitfield)
     {
-        return QVariant(this->data->GetSignedBitfield(this->ccsdsFieldNames[memberIndex]));
+        return QVariant::fromValue(this->data->GetSignedBitfield(this->ccsdsFieldNames[memberIndex]));
     }
     else if (this->ccsdsFieldTypes[memberIndex] == Protobetter::Float)
     {
