@@ -1,0 +1,14 @@
+#ifndef TRICK_SBN_LIB_GLOBAL_H
+#define TRICK_SBN_LIB_GLOBAL_H
+
+#include <QtCore/qglobal.h>
+
+#if defined(TRICK_SBN_LIB_LIBRARY)
+#  define TRICK_SBN_LIBSHARED_EXPORT Q_DECL_EXPORT
+#elif defined(TRICK_SBN_LIB_OBJECT)
+#  define TRICK_SBN_LIBSHARED_EXPORT
+#else
+#  define TRICK_SBN_LIBSHARED_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // TRICK_SBN_LIB_GLOBAL_H

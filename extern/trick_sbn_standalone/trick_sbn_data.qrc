@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>data/default_config.tricksbn</file>
+    </qresource>
+</RCC>

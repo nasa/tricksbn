@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>data/default_config.tricksbn</file>
+        <file>data/test_json_data.tricksbn</file>
+    </qresource>
+</RCC>
