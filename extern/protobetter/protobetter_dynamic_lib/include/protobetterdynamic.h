@@ -84,6 +84,8 @@ namespace Protobetter
 
         void LoadPrototypesFromXTCE(QString filePath);
 
+        void LoadPrototypesFromPType(const QJsonDocument &jsonDoc);
+
         std::size_t Size() const;
 
         // TODO: add API methods to modify elements already added to this collection

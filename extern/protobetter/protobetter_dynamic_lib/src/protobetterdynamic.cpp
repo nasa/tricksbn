@@ -467,7 +467,16 @@ Protobetter::ProtobetterFieldType Protobetter::FieldCollection::GetFieldType(QSt
         throw std::runtime_error("Protobetter::FieldCollection::GetFieldType ERROR: can't access field type info until type is complete!");
     }
 
-    // TODO: some validation for debug builds...
+#ifndef QT_NO_DEBUG
+
+    if (!this->memberAccessors->contains(name))
+    {
+        QString errMsg = QString("No member named ") + name;
+        throw std::invalid_argument(errMsg.toStdString().c_str());
+    }
+
+#endif
+
     return this->memberAccessors->value(name).type;
 }
 
@@ -1713,26 +1722,9 @@ void Protobetter::PrototypeCollection::LoadPrototypesFromXTCE(QString filePath)
     f.close();
 }
 
-void Protobetter::PrototypeCollection::LoadPrototypesFromPType(QString filePath)
+void Protobetter::PrototypeCollection::LoadPrototypesFromPType(const QJsonDocument &jsonDoc)
 {
-    QFile f(filePath);
-
-    if (!f.open(QFile::ReadOnly | QFile::Text))
-    {
-        std::cout << "PrototypeCollection ERROR: Unable to open ptype file: " << filePath.toStdString().c_str() << std::endl;
-        return;
-    }
-
-    QTextStream in(&f);
-    QByteArray jsonData(in.readAll().toUtf8());
-
-    QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData);
-
-    if (jsonDoc.isNull())
-    {
-        std::cout << "PrototypeCollection ERROR: Unable to parse json document: " << filePath.toStdString().c_str() << std::endl;
-    }
-    else if (jsonDoc.isArray())
+    if (jsonDoc.isArray())
     {
         // we're expecting an array of json objects
         for (int i = 0; i < jsonDoc.array().count(); ++i)
@@ -1752,6 +1744,31 @@ void Protobetter::PrototypeCollection::LoadPrototypesFromPType(QString filePath)
         Prototype prototype = BuildPrototypeFromJsonObject(object);
 
         this->rootTypes.append(prototype);
+    }
+}
+
+void Protobetter::PrototypeCollection::LoadPrototypesFromPType(QString filePath)
+{
+    QFile f(filePath);
+
+    if (!f.open(QFile::ReadOnly | QFile::Text))
+    {
+        std::cout << "PrototypeCollection ERROR: Unable to open ptype file: " << filePath.toStdString().c_str() << std::endl;
+        return;
+    }
+
+    QTextStream in(&f);
+    QByteArray jsonData(in.readAll().toUtf8());
+
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData);
+
+    if (jsonDoc.isNull())
+    {
+        std::cout << "PrototypeCollection ERROR: Unable to parse json document: " << filePath.toStdString().c_str() << std::endl;
+    }
+    else
+    {
+        this->LoadPrototypesFromPType(jsonDoc);
     }
 
     f.close();
