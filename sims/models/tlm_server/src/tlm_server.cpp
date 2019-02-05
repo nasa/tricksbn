@@ -17,6 +17,7 @@ namespace {
     extern Trick::MemoryManager *trick_MM;
 
     Protobetter::PrototypeCollection *prototypes = nullptr;
+    Protobetter::DynamicTypeCollection *dynamicTypes = nullptr;
 }
 
 void InitTlmServer(TelemetryServerConfig *config)
