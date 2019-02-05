@@ -189,8 +189,8 @@ void TrickSbnTest::ConfigTest2()
     QJSEngine myEngine;
     myEngine.installExtensions(QJSEngine::AllExtensions);
 
-    QJSValue deserializeJson = myEngine.evaluate("function(jsonData) { return JSON.parse(jsonData) }");
-    QJSValue serializeJson = myEngine.evaluate("function(jsObj) { return JSON.stringify(jsObj) }");
+    QJSValue deserializeJson = myEngine.evaluate("(function(jsonData) { return JSON.parse(jsonData) })");
+    QJSValue serializeJson = myEngine.evaluate("(function(jsObj) { return JSON.stringify(jsObj) })");
 
     /*
      * Verify the first message contents and the transform logic works...
@@ -208,7 +208,7 @@ void TrickSbnTest::ConfigTest2()
 
     QString jsonMessageTransformBody = jsonMessage.property("processMessage").toString();
 
-    QJSValue processMessageFunction = myEngine.evaluate("function(payloadObject) { " + jsonMessageTransformBody + " }");
+    QJSValue processMessageFunction = myEngine.evaluate("(function(payloadObject) { " + jsonMessageTransformBody + " })");
 
     if (processMessageFunction.isError())
     {
@@ -248,7 +248,7 @@ void TrickSbnTest::ConfigTest2()
 
     jsonMessageTransformBody = jsonMessage.property("processMessage").toString();
 
-    processMessageFunction = myEngine.evaluate("function(payloadObject) { " + jsonMessageTransformBody + " }");
+    processMessageFunction = myEngine.evaluate("(function(payloadObject) { " + jsonMessageTransformBody + " })");
 
     if (processMessageFunction.isError())
     {
