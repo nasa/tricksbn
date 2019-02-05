@@ -21,6 +21,7 @@ namespace {
 
     Protobetter::PrototypeCollection *prototypes = nullptr;
     Protobetter::DynamicTypeCollection *dynamicTypes = nullptr;
+    QSbn *sbn = nullptr;
 }
 
 void InitTlmServer(TelemetryServerConfig *config)
@@ -52,10 +53,7 @@ void InitTlmServer(TelemetryServerConfig *config)
 
     dynamicTypes->FromPrototypeCollection(*prototypes);
 
-    if (prototypes->HasType("Struct_Cannon"))
-        std::cout << "loaded cannon type successfully!" << std::endl;
-    else
-        std::cout << "failed to load cannon type..." << std::endl;
+    sbn = new QSbn(QString(config->qsbnJsonConfig.c_str()));
 }
 
 void RunTlmServer(TelemetryServerState *data)
