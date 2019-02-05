@@ -9,6 +9,9 @@
 #include <QJsonObject>
 
 #include "protobetterdynamic.h"
+#include "qsbn.h"
+#include "trick_ccsds_mapping.h"
+#include "trick_ccsds_memory_manager.h"
 
 #include "trick/MemoryManager.hh"
 
@@ -46,6 +49,8 @@ void InitTlmServer(TelemetryServerConfig *config)
         // TODO: load a prototype file - not tvm files here
         prototypes->LoadPrototypesFromPType(prototypeFile.absoluteFilePath());
     }
+
+    dynamicTypes->FromPrototypeCollection(*prototypes);
 
     if (prototypes->HasType("Struct_Cannon"))
         std::cout << "loaded cannon type successfully!" << std::endl;

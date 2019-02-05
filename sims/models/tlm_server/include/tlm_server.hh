@@ -23,6 +23,9 @@ typedef struct
     std::string tvmFileDir;
     std::string prototypeFileDir;
 
+    // TODO: just here for debugging purposes
+    bool useSimulatedTrickBackend;
+
 } TelemetryServerConfig;
 
 typedef struct
