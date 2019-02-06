@@ -5,8 +5,8 @@
             "cfsStructureType":"Bittylicious_c",
             "members":
             [
-                { "cfsVar":"b[0].e[0].x", "cfsType":"float", "trickVar":"var1", "trickType":"double" },
-                { "cfsVar":"c[1]", "cfsType":"int16", "trickVar":"var2", "trickType":"int" }
+                { "cfsVar":"b[0].e[0].x", "cfsType":"float", "trickVar":"dyn.cannon.pos[0]", "trickType":"double" },
+                { "cfsVar":"c[1]", "cfsType":"int16", "trickVar":"dyn.cannon.impact", "trickType":"int" }
             ]
         }
 ]
