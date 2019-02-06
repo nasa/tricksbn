@@ -26,8 +26,6 @@ typedef struct
     // TODO: just here for debugging purposes
     bool useSimulatedTrickBackend;
 
-    bool debugLoggingEnabled;
-
 } TelemetryServerConfig;
 
 typedef struct

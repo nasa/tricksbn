@@ -293,6 +293,13 @@ int TrickMemoryManagerClient::ReadData(QCcsdsPacket *packetArray, int maxMessage
 
                 this->mappings[i].SetProtobetterField(j, data);
             }
+
+#ifdef TRICK_SBN_DEBUG_LOGGING_ENABLED
+
+// TODO: read back the data from the protobetter CCSDS packet
+// and dump it to stdout for debugging purposes
+
+#endif
         }
     }
 
@@ -321,6 +328,24 @@ int TrickMemoryManagerClient::WriteData(QCcsdsPacket &packet)
 
                     this->SetData(this->fieldAccessors[messageId][j], data);
                 }
+
+#ifdef TRICK_SBN_DEBUG_LOGGING_ENABLED
+
+                std::cout << "*** New CCSDS Data Processed Trick Mapping MID" 
+                    << QString::number(this->mappings[i].messageId, 16).toStdString()
+                    << " ***\n" << std::endl;
+
+                for (int j = 0; j < memberCount; ++j)
+                {
+                    QVariant data = this->GetData(this->fieldAccessors[messageId][j]);
+
+                    std::cout << this->mappings[i].trickFieldNames[j].toStdString()
+                        << " = " << data.toString().toStdString() << std::endl;
+                }
+
+                std::cout << std::endl;
+
+#endif
 
                 return 1;
             }

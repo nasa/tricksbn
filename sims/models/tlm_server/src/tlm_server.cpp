@@ -22,9 +22,6 @@ namespace {
     QSbn *sbn = nullptr;
     TrickCcsdsMappingClient *mappingClient = nullptr;
 
-    bool debugLoggingEnabled = false;
-
-
     const int packetBufferSize = 1000;
     QCcsdsPacket *packetBuffer = nullptr;
 }
@@ -40,10 +37,11 @@ void InitTlmServer(TelemetryServerConfig *config)
 
     prototypes = new Protobetter::PrototypeCollection;
 
-    if (config->debugLoggingEnabled)
-    {
+#ifdef TRICK_SBN_DEBUG_LOGGING_ENABLED
+
         std::cout << "Initializing Trick-SBN with debug logging enabled" << std::endl;
-    } 
+
+#endif
 
     QDir tvmFileDir(QString(config->tvmFileDir.c_str()));
     QDir prototypeFileDir(QString(config->prototypeFileDir.c_str()));

@@ -6,6 +6,8 @@ TRICK_CXXFLAGS = -I../models
 # TRICK_CXXFLAGS += -I/users/dspray1/Qt/5.11.1/gcc_64/include -I/users/dspray1/Qt/5.11.1/gcc_64/include/QtCore -I/users/dspray1/Qt/5.11.1/gcc_64/mkspecs/linux-g++
 TRICK_CXXFLAGS += -I${QT_INSTALL_DIR}/include -I${QT_INSTALL_DIR}/include/QtCore -I${QT_INSTALL_DIR}/include/QtNetwork -I${QT_INSTALL_DIR}/mkspecs/linux-g++
 
+TRICK_CXXFLAGS += -DTRICK_SBN_DEBUG_LOGGING_ENABLED
+
 TRICK_CXXFLAGS += -DPROTOBETTER_DYNAMIC_LIB_OBJECT
 
 TRICK_CXXFLAGS += -I../../extern/protobetter/protobetter_dynamic_lib/include
