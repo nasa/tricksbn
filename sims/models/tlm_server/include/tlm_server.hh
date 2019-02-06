@@ -26,10 +26,14 @@ typedef struct
     // TODO: just here for debugging purposes
     bool useSimulatedTrickBackend;
 
+    bool debugLoggingEnabled;
+
 } TelemetryServerConfig;
 
 typedef struct
 {
+    // TODO: judgement call - but I don't think we really need
+    // to expose any state here... get rid of this?
 
 } TelemetryServerState;
 

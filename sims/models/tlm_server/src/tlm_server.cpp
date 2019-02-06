@@ -20,6 +20,9 @@ namespace {
     Protobetter::PrototypeCollection *prototypes = nullptr;
     Protobetter::DynamicTypeCollection *dynamicTypes = nullptr;
     QSbn *sbn = nullptr;
+    TrickCcsdsMappingClient *client = nullptr;
+
+    bool debugLoggingEnabled = false;
 }
 
 extern Trick::MemoryManager *trick_MM;
@@ -30,6 +33,11 @@ void InitTlmServer(TelemetryServerConfig *config)
     // do all your server initialization based on that here...
 
     prototypes = new Protobetter::PrototypeCollection;
+
+    if (config->debugLoggingEnabled)
+    {
+        std::cout << "Initializing Trick-SBN with debug logging enabled" << std::endl;
+    } 
 
     QDir tvmFileDir(QString(config->tvmFileDir.c_str()));
     QDir prototypeFileDir(QString(config->prototypeFileDir.c_str()));
@@ -53,16 +61,27 @@ void InitTlmServer(TelemetryServerConfig *config)
 
     dynamicTypes->FromPrototypeCollection(*prototypes);
 
+    std::cout << "qsbn: \n\n" << config->qsbnJsonConfig << std::endl;
+
     sbn = new QSbn(QString(config->qsbnJsonConfig.c_str()));
 
     if (sbn->GetCurrentState() == QSbn::Initialized)
     {
         std::cout << "QSbn initialized successfully..." << std::endl;
     }
+    else if (sbn->GetCurrentState() == QSbn::InvalidConfiguration)
+    {
+        std::cout << "ERROR initializing QSbn... invalid configuration data!" << std::endl;
+    }
     else
     {
         std::cout << "ERROR initializing QSbn..." << std::endl;
     }
+
+    // start qsbn last - no point in acquiring network resources
+    // before validating all configuration data...
+
+//    sbn->StartQSbn();
 }
 
 void RunTlmServer(TelemetryServerState *data)

@@ -430,16 +430,18 @@ int QSbn::Initialize(QString jsonConfigurationData)
 {
     QJsonDocument configurationDoc = QJsonDocument::fromJson(jsonConfigurationData.toUtf8());
 
-    if (!configurationDoc.isObject())
+    if (configurationDoc.isObject())
     {
         int ret = this->Initialize(configurationDoc.object());
 
         if (ret > 0)
         {
-            this->currentState = QSbn::Ready;
+            this->currentState = QSbn::Initialized;
             return 1;
         }
     }
+
+    std::cout << "ERROR: Invalid json string passed to QSbn constructor..." << std::endl;
 
     this->currentState = QSbn::InvalidConfiguration;
     return -1;
