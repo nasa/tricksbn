@@ -51,6 +51,15 @@ void InitTlmServer(TelemetryServerConfig *config)
     QStringList tvmFilePaths = tvmFileDir.entryList(QStringList() << "*.tvm", QDir::Files);
     QStringList prototypeFilePaths = prototypeFileDir.entryList(QStringList() << "*.ptype", QDir::Files);
 
+    if (tvmFilePaths.size() == 0)
+    {
+        std::cout << "TRICK_SBN ERROR: no tvm files found in tvm dir - " << tvmFileDir.absolutePath().toStdString() << std::endl;
+    }
+    else if (prototypeFilePaths.size() == 0)
+    {
+        std::cout << "TRICK_SBN ERROR: no ptype files found in ptype dir - " << prototypeFileDir.absolutePath().toStdString() << std::endl;
+    }
+
     // process prototype data & build dynamic types
     for (int i = 0; i < prototypeFilePaths.length(); ++i)
     {
@@ -59,7 +68,17 @@ void InitTlmServer(TelemetryServerConfig *config)
         prototypes->LoadPrototypesFromPType(prototypeFile.absoluteFilePath());
     }
 
-    dynamicTypes->FromPrototypeCollection(*prototypes);
+    dynamicTypes = new Protobetter::DynamicTypeCollection;
+    *dynamicTypes = Protobetter::DynamicTypeCollection::FromPrototypeCollection(*prototypes);
+
+    if (dynamicTypes->Size() == 0)
+    {
+        std::cout << "TRICK_SBN ERROR - no valid prototype definitions available!" << std::endl;
+    }
+    else
+    {
+        std::cout << "TRICK_SBN: " << dynamicTypes->Size() << " prototypes available!" << std::endl; 
+    }
 
     // process tvm data & initialize ccsds mapping client
     QJsonArray tvmObjects;
@@ -101,11 +120,30 @@ void InitTlmServer(TelemetryServerConfig *config)
 
     if (config->useSimulatedTrickBackend)
     {
-        mappingClient = new SimulatedTrickBackend(); 
+        mappingClient = new SimulatedTrickBackend();
+        std::cout << "Trick-SBN using simulated trick backend..." << std::endl; 
     }
     else
     {
         mappingClient = new TrickMemoryManagerClient();
+        std::cout << "Trick-SBN using Trick memory manager API..." << std::endl;
+    }
+
+    if (tvmObjects.size() == 0)
+    {
+        std::cout << "TRICK_SBN ERROR: no valid tvm object definitions!" << std::endl;
+    }
+    else
+    {
+        std::cout << "TRICK_SBN has the following mappings available:\n" << std::endl;
+
+        for (int i = 0; i < tvmObjects.size(); ++i)
+        {
+            auto tvmObject = tvmObjects.at(i).toObject();
+            std::cout << "TrickVariableMapping: mid = " << tvmObject["messageId"].toString().toStdString();
+        }
+
+        std::cout << std::endl;
     }
 
     mappingClient->Initialize(*dynamicTypes, tvmObjects);
@@ -126,7 +164,7 @@ void InitTlmServer(TelemetryServerConfig *config)
         std::cout << "ERROR initializing QSbn..." << std::endl;
     }
 
-    //    sbn->StartQSbn();
+    sbn->StartQSbn();
 }
 
 void RunTlmServer(TelemetryServerState *data)
