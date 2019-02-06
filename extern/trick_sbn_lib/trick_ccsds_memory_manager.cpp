@@ -338,6 +338,10 @@ int TrickMemoryManagerClient::WriteData(QCcsdsPacket &packet)
                 for (int j = 0; j < memberCount; ++j)
                 {
                     QVariant data = this->GetData(this->fieldAccessors[messageId][j]);
+                    QVariant protobetterData = this->mappings[i].GetProtobetterField(j);
+
+                    std::cout << this->mappings[i].ccsdsFieldNames[j].toStdString()
+                        << " = " << protobetterData.toString().toStdString() << ", ";
 
                     std::cout << this->mappings[i].trickFieldNames[j].toStdString()
                         << " = " << data.toString().toStdString() << std::endl;

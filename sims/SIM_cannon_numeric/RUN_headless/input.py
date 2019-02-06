@@ -25,4 +25,4 @@ tlmServer.configData.qsbnJsonConfig = '''
 
 # only set this to true if you want this to run as if it were just simulating
 # a trick model producing/consuming data on SBN
-tlmServer.configData.useSimulatedTrickBackend = True
+tlmServer.configData.useSimulatedTrickBackend = False 
