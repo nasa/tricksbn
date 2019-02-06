@@ -95,7 +95,7 @@ namespace
         }
         else if (size == 4)
         {
-            int16_t data = value;
+            int32_t data = value;
 
             memcpy(address, &data, 4);
 
@@ -124,7 +124,7 @@ namespace
         }
         else if (size == 4)
         {
-            uint16_t data = value;
+            uint32_t data = value;
 
             memcpy(address, &data, 4);
 
