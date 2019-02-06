@@ -1,5 +1,18 @@
-
 #include "trick_ccsds_memory_manager.h"
+
+#ifdef TRICK_VER 
+
+    #pragma message("BUILDING WITH TRICK APIs.")
+    
+    #include "trick/MemoryManager.hh"
+
+    extern Trick::MemoryManager *trick_MM;
+
+#else
+
+    #pragma message("BUILDING STANDALONE WITHOUT TRICK APIs.")
+
+#endif
 
 TrickMemoryManagerClient::TrickMemoryManagerClient()
 {
@@ -15,11 +28,51 @@ int TrickMemoryManagerClient::Initialize(Protobetter::DynamicTypeCollection &pro
 {
     TrickCcsdsMappingClient::Initialize(prototypes, trickVariableMappings);
 
+#ifdef TRICK_VER
+
     for (int i = 0 ; i < this->mappings.size(); ++i)
     {
-        // TODO: use the trickFieldNames in this->mappings to get REF2* data
-        // and populate this->fieldAccessors with it...
+        uint32_t mid = this->mappings[i].messageId;
+
+        QVector<TrickFieldAccessor> accessors;
+
+        for (int j = 0; j < this->mappings[i].trickFieldNames.size(); ++j)
+        {
+            REF2 *refAttributes = 
+                trick_MM->ref_attributes(
+                    this->mappings[i].trickFieldNames[j].toStdString().c_str());
+
+            TrickFieldAccessor accessor;
+
+            accessor.address = refAttributes->address;
+            accessor.size = refAttributes->attr->size;
+
+            if (this->mappings[i].trickFieldTypes[j] == "float")
+            {
+                accessor.type = TrickFieldAccessor::Float;
+            }
+            else if (this->mappings[i].trickFieldTypes[j] == "double")
+            {
+                accessor.type = TrickFieldAccessor::Double;
+            }
+            else if (this->mappings[i].trickFieldTypes[j] == "int")
+            {
+                accessor.type = TrickFieldAccessor::Int;
+            }
+            else if (this->mappings[i].trickFieldTypes[j] == "uint")
+            {
+                accessor.type = TrickFieldAccessor::UInt;
+            }
+
+            // TODO: you *may* need bitfield support at some point
+            
+            accessors.push_back(accessor);
+        }
+
+        this->fieldAccessors[mid] = accessors;
     }
+
+#endif
 
     return 1;
 }
@@ -248,5 +301,32 @@ int TrickMemoryManagerClient::ReadData(QCcsdsPacket *packetArray, int maxMessage
 
 int TrickMemoryManagerClient::WriteData(QCcsdsPacket &packet)
 {
+    uint32_t packetId = packet.GetMessageId();
+
+    for (int i = 0; i < this->mappings.size(); ++i)
+    {
+        if (this->mappings[i].flowDirection == 2)
+        {
+            uint32_t messageId = this->mappings[i].messageId;
+
+            if (messageId == packetId)
+            {
+                int memberCount = this->mappings[i].ccsdsFieldNames.size();
+
+                this->mappings[i].data->SetData(packet.GetPayloadData());
+
+                for (int j = 0; j < memberCount; ++j)
+                {
+                    QVariant data = this->mappings[i].GetProtobetterField(j);
+
+                    this->SetData(this->fieldAccessors[messageId][j], data);
+                }
+
+                return 1;
+            }
+
+        }
+    }
+
     return -1;
 }

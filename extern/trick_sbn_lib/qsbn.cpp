@@ -948,7 +948,10 @@ int QSbn::Send(QCcsdsPacket *msgQueue, int count)
     return -1;
 }
 
-
+QSbn::State QSbn::GetCurrentState() const
+{
+    return this->currentState;
+}
 
 
 

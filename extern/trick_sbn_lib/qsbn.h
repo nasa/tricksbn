@@ -197,6 +197,8 @@ public:
 
 class TRICK_SBN_LIBSHARED_EXPORT QSbn
 {
+public:
+
     enum Protocol
     {
         CCSDS_STREAMING,
@@ -212,8 +214,6 @@ class TRICK_SBN_LIBSHARED_EXPORT QSbn
         UdpPortBindFailed = -3,
         UnkownError = -99
     };
-
-public:
 
     QSbn();
 

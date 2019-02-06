@@ -17,12 +17,12 @@
 
 namespace {
 
-    extern Trick::MemoryManager *trick_MM;
-
     Protobetter::PrototypeCollection *prototypes = nullptr;
     Protobetter::DynamicTypeCollection *dynamicTypes = nullptr;
     QSbn *sbn = nullptr;
 }
+
+extern Trick::MemoryManager *trick_MM;
 
 void InitTlmServer(TelemetryServerConfig *config)
 {
@@ -54,6 +54,15 @@ void InitTlmServer(TelemetryServerConfig *config)
     dynamicTypes->FromPrototypeCollection(*prototypes);
 
     sbn = new QSbn(QString(config->qsbnJsonConfig.c_str()));
+
+    if (sbn->GetCurrentState() == QSbn::Initialized)
+    {
+        std::cout << "QSbn initialized successfully..." << std::endl;
+    }
+    else
+    {
+        std::cout << "ERROR initializing QSbn..." << std::endl;
+    }
 }
 
 void RunTlmServer(TelemetryServerState *data)
