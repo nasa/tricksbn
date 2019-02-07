@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "trick_ccsds_memory_manager.h"
 
 #ifdef TRICK_VER 
@@ -312,7 +314,7 @@ int TrickMemoryManagerClient::WriteData(QCcsdsPacket &packet)
 
     for (int i = 0; i < this->mappings.size(); ++i)
     {
-        if (this->mappings[i].flowDirection == 2)
+        if (this->mappings[i].flowDirection == 2 || this->mappings[i].flowDirection == 3)
         {
             uint32_t messageId = this->mappings[i].messageId;
 
@@ -356,6 +358,8 @@ int TrickMemoryManagerClient::WriteData(QCcsdsPacket &packet)
 
         }
     }
+
+    std::cout << "ERROR TrickMemoryManagerClient::WriteData() called w/ no mappings for message ID = " << QString::number(packetId, 16).toStdString() << std::endl;
 
     return -1;
 }

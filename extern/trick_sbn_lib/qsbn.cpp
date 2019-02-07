@@ -848,6 +848,11 @@ int QSbn::ProcessIncomingMessages(QCcsdsPacket *msgQueue, int queueSize)
             {
                 int size = this->socket.readDatagram(buffer, QSBN_MAX_SBN_PACKET_SIZE);
 
+                if (size < 0)
+                {
+                    return messagesRead;
+                }
+
                 packet.SetPacketData(buffer, size);
 
                 int peerIndex = this->GetPeerIndexFromCpuId(packet.GetCpuId());
@@ -908,7 +913,7 @@ int QSbn::ProcessIncomingMessages(QCcsdsPacket *msgQueue, int queueSize)
             }
             else if (expectedSize == 0)
             {
-                return 0;
+                return messagesRead;
             }
             else
             {
@@ -959,7 +964,7 @@ int QSbn::Send(QCcsdsPacket *msgQueue, int count)
             uint32_t mid = msgQueue[i].GetMessageId();
 
             QSbnPacket packet(this->hostConfig.cpuId, QSbnPacket::SBN_APP_MSG, payloadLength);
-            packet.SetPayloadData(msgQueue[i].GetPayloadData(), payloadLength);
+            packet.SetPayloadData(msgQueue[i].GetPacketData(), payloadLength);
 
             for (int j = 0; j < this->peers.size(); ++j)
             {
