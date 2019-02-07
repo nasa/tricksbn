@@ -4,7 +4,7 @@ tlmServer.configData.prototypeFileDir = "/users/dspray1/code/tricksbn/sims/SIM_c
 tlmServer.configData.qsbnJsonConfig = '''
 
 {
-    "protocol":"stream",
+    "protocol":"sbn",
 
     "timeout":3000,
 

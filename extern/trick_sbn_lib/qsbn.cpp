@@ -199,7 +199,7 @@ const char * QSbnPacket::GetPacketData() const
 
 const char * QSbnPacket::GetPayloadData() const
 {
-    return this->data + 5;
+    return this->data + 7;
 }
 
 void QSbnPacket::SetPacketType(const QSbnPacket::PacketType type)
@@ -534,8 +534,6 @@ int QSbn::AddSubscriptions(QVector<uint32_t> &messageIds)
         }
     }
 
-    this->SendSubscriptionsToPeers();
-
     return 1;
 }
 
@@ -543,12 +541,40 @@ int QSbn::SendSubscriptionsToPeers()
 {
     if (this->protocol == QSbn::SBN_UDP && this->currentState == QSbn::Ready)
     {
+        uint16_t hostSubCount = this->hostConfig.subscriptionMids.size();
+
+        if (hostSubCount == 0)
+        {
+            return 1;
+        }
+
         QSbnSubscriptionPacket subMessage(QSBN_VERSION_INFO, strlen(QSBN_VERSION_INFO) + 1);
 
         for (int i = 0; i < this->hostConfig.subscriptionMids.size(); ++i)
         {
             subMessage.AddSubscription(this->hostConfig.subscriptionMids[i]);
         }
+
+        if (subMessage.GetSubscriptionCount() != hostSubCount)
+        {
+            std::cout << "ERROR building QSbn Subscription Message... failed to add subs to sub message..." << std::endl;
+            return -1;
+        }
+
+        std::cout << "QSbn about to send " << subMessage.GetSubscriptionCount()
+            << " subscriptions to peers: ";
+
+        for (int i = 0; i < hostSubCount; ++i)
+        {
+            if (i != 0)
+            {
+                std::cout << ", ";
+            }
+
+            std::cout << QString::number(subMessage.GetSubscriptionAt(i), 16).toStdString();
+        }
+
+        std::cout << std::endl;
 
         QSbnPacket packet(this->hostConfig.cpuId,
                           QSbnPacket::SBN_SUB_MSG,
@@ -838,6 +864,8 @@ int QSbn::ProcessIncomingMessages(QCcsdsPacket *msgQueue, int queueSize)
                     // if peer was disconnected, it's not anymore pal o/
                     this->peers[peerIndex].isConnected = true;
                     std::cout << "QSbn Peer CPU " << this->peers[peerIndex].cpuId << " connected!" << std::endl;
+
+                    this->SendSubscriptionsToPeers();
                 }
 
                 this->peers[peerIndex].lastSeen = QDateTime::currentMSecsSinceEpoch();
@@ -855,9 +883,15 @@ int QSbn::ProcessIncomingMessages(QCcsdsPacket *msgQueue, int queueSize)
 
                     uint16_t subCount = subsMsg.GetSubscriptionCount();
 
+                    std::cout << "QSbn: Received sub msg from peer cpuId = "
+                        << packet.GetCpuId() << " w/ " << subCount << " subscriptions..." << std::endl;
+
                     for (int i = 0; i < subCount; ++i)
                     {
                         uint32_t mid = subsMsg.GetSubscriptionAt(i);
+
+                        std::cout << "QSbn: Peer cpuId " << packet.GetCpuId()
+                            << " subscribed to message ID = " << QString::number(mid, 16).toStdString() << std::endl;
 
                         if (!this->peers[peerIndex]
                                 .IsSubscribedToMessageId(mid))

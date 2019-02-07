@@ -167,9 +167,14 @@ void RunTvsIoStandalone(TvsIoStandaloneCli &cli)
 
     auto hostSubscriptions = mappingClient->GetInboundMids();
 
-    sbn.AddSubscriptions(hostSubscriptions);
+    int result = sbn.AddSubscriptions(hostSubscriptions);
 
-    int result = sbn.StartQSbn();
+    if (result < 0)
+    {
+        std::cout << "ERROR processing host subscriptions for QSbn..." << std::endl;
+    }
+
+    result = sbn.StartQSbn();
 
     if (result < 0)
     {
