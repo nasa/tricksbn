@@ -9,17 +9,77 @@ namespace {
                           Protobetter::ProtobetterFieldType fieldType,
                           QString fieldName)
     {
-        if (fieldType == Protobetter::Int16)
+        if (fieldType == Protobetter::UInt8)
         {
-            uint16_t value = data->GetInt16(fieldName);
+            uint8_t value = data->GetUInt8(fieldName);
+
+            data->SetUInt8(fieldName, ++value);
+        }
+        else if (fieldType == Protobetter::UInt16)
+        {
+            uint16_t value = data->GetUInt16(fieldName);
+
+            data->SetUInt16(fieldName, ++value);
+        }
+        else if (fieldType == Protobetter::UInt32)
+        {
+            uint32_t value = data->GetUInt32(fieldName);
+
+            data->SetUInt32(fieldName, ++value);
+        }
+        else if (fieldType == Protobetter::UInt64)
+        {
+            uint16_t value = data->GetUInt64(fieldName);
+
+            data->SetUInt64(fieldName, ++value);
+        }
+        else if (fieldType == Protobetter::Int8)
+        {
+            int8_t value = data->GetInt8(fieldName);
+
+            data->SetInt8(fieldName, ++value);
+        }
+        else if (fieldType == Protobetter::Int16)
+        {
+            int16_t value = data->GetInt16(fieldName);
 
             data->SetInt16(fieldName, ++value);
+        }
+        else if (fieldType == Protobetter::Int32)
+        {
+            int32_t value = data->GetInt32(fieldName);
+
+            data->SetInt32(fieldName, ++value);
+        }
+        else if (fieldType == Protobetter::Int64)
+        {
+            int16_t value = data->GetInt64(fieldName);
+
+            data->SetInt64(fieldName, ++value);
         }
         else if (fieldType == Protobetter::Float)
         {
             float value = data->GetFloat(fieldName) + 1.1f;
 
             data->SetFloat(fieldName, value);
+        }
+        else if (fieldType == Protobetter::Double)
+        {
+            double value = data->GetDouble(fieldName) + 1.1;
+
+            data->SetDouble(fieldName, value);
+        }
+        else if (fieldType == Protobetter::UnsignedBitfield)
+        {
+            uint64_t value = data->GetUnsignedBitfield(fieldName);
+
+            data->SetUnsignedBitfield(fieldName, ++value); 
+        }
+        else if (fieldType == Protobetter::SignedBitfield)
+        {
+            int64_t value = data->GetSignedBitfield(fieldName);
+
+            data->SetSignedBitfield(fieldName, ++value);
         }
     }
 

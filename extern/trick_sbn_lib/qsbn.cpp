@@ -994,7 +994,10 @@ QSbn::State QSbn::GetCurrentState() const
     return this->currentState;
 }
 
-
+QSbn::Protocol QSbn::GetCurrentProtocol() const
+{
+    return this->protocol;
+}
 
 
 

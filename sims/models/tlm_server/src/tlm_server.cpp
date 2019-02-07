@@ -162,16 +162,27 @@ void InitTlmServer(TelemetryServerConfig *config)
         std::cout << "ERROR initializing QSbn..." << std::endl;
     }
 
-    auto hostSubscriptions = mappingClient->GetInboundMids();
+    int result = -1;
 
-    int result = sbn->AddSubscriptions(hostSubscriptions);
+    if (sbn->GetCurrentProtocol() == QSbn::SBN_UDP)
+    {
+    
+        auto hostSubscriptions = mappingClient->GetInboundMids();
+
+        int result = sbn->AddSubscriptions(hostSubscriptions);
+
+        if (result < 0)
+        {
+            std::cout << "ERROR processing host subscriptions for QSbn..." << std::endl;
+        }
+    }
+
+    result = sbn->StartQSbn();
 
     if (result < 0)
     {
-        std::cout << "ERROR processing host subscriptions for QSbn..." << std::endl;
+        std::cout << "ERROR starting QSbn..." << std::endl;
     }
-
-    sbn->StartQSbn();
 }
 
 void RunTlmServer(TelemetryServerState *data)

@@ -231,6 +231,7 @@ public:
     int StartQSbn();
 
     QSbn::State GetCurrentState() const;
+    QSbn::Protocol GetCurrentProtocol() const;
 
     int GetPeerInfo(uint32_t cpuId, QSbnPeer &peerInfo);
 
