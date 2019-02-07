@@ -333,7 +333,7 @@ int TrickMemoryManagerClient::WriteData(QCcsdsPacket &packet)
 
 #ifdef TRICK_SBN_DEBUG_LOGGING_ENABLED
 
-                std::cout << "*** New CCSDS Data Processed Trick Mapping MID" 
+                std::cout << "*** New CCSDS Data Processed Trick Mapping MID 0x" 
                     << QString::number(this->mappings[i].messageId, 16).toStdString()
                     << " ***\n" << std::endl;
 
