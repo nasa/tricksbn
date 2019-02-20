@@ -1,6 +1,7 @@
 TRICK_CXXFLAGS += -I${QT_INSTALL_DIR}/include -I${QT_INSTALL_DIR}/include/QtCore -I${QT_INSTALL_DIR}/include/QtNetwork -I${QT_INSTALL_DIR}/mkspecs/linux-g++
 
-TRICK_CXXFLAGS += -DTRICK_SBN_DEBUG_LOGGING_ENABLED
+# if you want debug logging enabled for build, you can add this flag to your top-level S_overrides.mk
+#TRICK_CXXFLAGS += -DTRICK_SBN_DEBUG_LOGGING_ENABLED
 
 TRICK_CXXFLAGS += -DPROTOBETTER_DYNAMIC_LIB_OBJECT
 
