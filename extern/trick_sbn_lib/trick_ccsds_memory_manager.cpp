@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include <iostream>
 
 #include "trick_ccsds_memory_manager.h"
@@ -32,6 +33,8 @@ int TrickMemoryManagerClient::Initialize(Protobetter::DynamicTypeCollection &pro
 
 #ifdef TRICK_VER
 
+    std::cout << "Initializing Trick CCSDS Memory Manager Client..." << std::endl;
+
     for (int i = 0 ; i < this->mappings.size(); ++i)
     {
         uint32_t mid = this->mappings[i].messageId;
@@ -43,6 +46,14 @@ int TrickMemoryManagerClient::Initialize(Protobetter::DynamicTypeCollection &pro
             REF2 *refAttributes = 
                 trick_MM->ref_attributes(
                     this->mappings[i].trickFieldNames[j].toStdString().c_str());
+
+            if (!refAttributes)
+            {
+                std::cout << "\n\nTrick CCSDS Memory Manager Client ERROR: no variable exists named "
+                    << this->mappings[i].trickFieldNames[j].toStdString() << "\n\n";
+
+                throw std::runtime_error("Invalid TVM file found...");
+            }
 
             TrickFieldAccessor accessor;
 
@@ -69,6 +80,8 @@ int TrickMemoryManagerClient::Initialize(Protobetter::DynamicTypeCollection &pro
             // TODO: you *may* need bitfield support at some point
             
             accessors.push_back(accessor);
+
+            delete refAttributes;
         }
 
         this->fieldAccessors[mid] = accessors;
