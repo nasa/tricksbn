@@ -138,7 +138,7 @@ void InitTlmServer(TelemetryServerConfig *config)
         for (int i = 0; i < tvmObjects.size(); ++i)
         {
             auto tvmObject = tvmObjects.at(i).toObject();
-            std::cout << "TrickVariableMapping: mid = " << tvmObject["messageId"].toString().toStdString();
+            std::cout << "TrickVariableMapping: mid = " << tvmObject["messageId"].toString().toStdString() << std::endl;
         }
 
         std::cout << std::endl;
