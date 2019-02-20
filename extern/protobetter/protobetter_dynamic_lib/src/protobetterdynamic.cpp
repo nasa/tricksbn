@@ -1733,7 +1733,15 @@ void Protobetter::PrototypeCollection::LoadPrototypesFromPType(const QJsonDocume
 
             Prototype prototype = BuildPrototypeFromJsonObject(object);
 
-            this->rootTypes.append(prototype);
+            if (this->HasType(prototype.name))
+            {
+                std::cout << "PROTOBETTER WARNING: multiple definitions found for type: " << prototype.name.toStdString()
+                    << "... ignoring all subsequent definitions..." << std::endl;
+            }
+            else
+            {
+                this->rootTypes.append(prototype);
+            }
         }
     }
     else if (jsonDoc.isObject())
