@@ -93,12 +93,61 @@ namespace {
 
                 std::cout << " - " << mapping.ccsdsFieldNames[i].toStdString() << " = " << value << std::endl;
             }
+            else if (mapping.ccsdsFieldTypes[i] == Protobetter::Double)
+            {
+                double value = mapping.data->GetDouble(mapping.ccsdsFieldNames[i]);
+
+                std::cout << " - " << mapping.ccsdsFieldNames[i].toStdString() << " = " << value << std::endl;
+            }
+            else if (mapping.ccsdsFieldTypes[i] == Protobetter::Int8)
+            {
+                int8_t value = mapping.data->GetInt8(mapping.ccsdsFieldNames[i]);
+
+                std::cout << " - " << mapping.ccsdsFieldNames[i].toStdString() << " = " << value << std::endl;
+            }
             else if (mapping.ccsdsFieldTypes[i] == Protobetter::Int16)
+            {
+                int16_t value = mapping.data->GetInt16(mapping.ccsdsFieldNames[i]);
+
+                std::cout << " - " << mapping.ccsdsFieldNames[i].toStdString() << " = " << value << std::endl;
+            }
+            else if (mapping.ccsdsFieldTypes[i] == Protobetter::Int32)
+            {
+                int32_t value = mapping.data->GetInt32(mapping.ccsdsFieldNames[i]);
+
+                std::cout << " - " << mapping.ccsdsFieldNames[i].toStdString() << " = " << value << std::endl;
+            }
+            else if (mapping.ccsdsFieldTypes[i] == Protobetter::Int64)
+            {
+                int64_t value = mapping.data->GetInt64(mapping.ccsdsFieldNames[i]);
+
+                std::cout << " - " << mapping.ccsdsFieldNames[i].toStdString() << " = " << value << std::endl;
+            }
+            else if (mapping.ccsdsFieldTypes[i] == Protobetter::UInt8)
+            {
+                uint8_t value = mapping.data->GetUInt8(mapping.ccsdsFieldNames[i]);
+
+                std::cout << " - " << mapping.ccsdsFieldNames[i].toStdString() << " = " << value << std::endl;
+            }
+            else if (mapping.ccsdsFieldTypes[i] == Protobetter::UInt16)
             {
                 uint16_t value = mapping.data->GetUInt16(mapping.ccsdsFieldNames[i]);
 
                 std::cout << " - " << mapping.ccsdsFieldNames[i].toStdString() << " = " << value << std::endl;
             }
+            else if (mapping.ccsdsFieldTypes[i] == Protobetter::UInt32)
+            {
+                uint32_t value = mapping.data->GetUInt32(mapping.ccsdsFieldNames[i]);
+
+                std::cout << " - " << mapping.ccsdsFieldNames[i].toStdString() << " = " << value << std::endl;
+            }
+            else if (mapping.ccsdsFieldTypes[i] == Protobetter::UInt64)
+            {
+                uint64_t value = mapping.data->GetUInt64(mapping.ccsdsFieldNames[i]);
+
+                std::cout << " - " << mapping.ccsdsFieldNames[i].toStdString() << " = " << value << std::endl;
+            }
+            
         }
 
         std::cout << std::endl;
