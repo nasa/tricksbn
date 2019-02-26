@@ -18,6 +18,7 @@ private slots:
     void TestBittylicious();
     void TestBittylicousFromPtypeFile();
     void TestAgainstProtobetterC();
+    void TestSuperBityFromPtypeFile();
 };
 
 #endif // PROTOBETTER_TEST_H
