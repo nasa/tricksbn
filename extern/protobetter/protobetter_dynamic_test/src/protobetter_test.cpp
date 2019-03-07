@@ -515,7 +515,7 @@ void ProtobetterTest::TestBittylicousFromPtypeFile()
 
         prototypes.LoadPrototypesFromPType(QString(":/protobetter_test/data/test_c.ptype"));
 
-        QVERIFY(prototypes.Size() == 3);
+        QVERIFY(prototypes.Size() == 4);
 
         QVERIFY(prototypes.HasType("Vector_c"));
         QVERIFY(prototypes.HasType("LilBity_c"));
@@ -523,7 +523,7 @@ void ProtobetterTest::TestBittylicousFromPtypeFile()
 
         auto dynamicTypes = Protobetter::DynamicTypeCollection::FromPrototypeCollection(prototypes);
 
-        QVERIFY(dynamicTypes.Size() == 3);
+        QVERIFY(dynamicTypes.Size() == 4);
 
         QVERIFY(dynamicTypes.HasType("Vector_c"));
         QVERIFY(dynamicTypes.HasType("LilBity_c"));
@@ -597,7 +597,7 @@ void ProtobetterTest::TestAgainstProtobetterC()
 
         prototypes.LoadPrototypesFromPType(QString(":/protobetter_test/data/test_c.ptype"));
 
-        QVERIFY(prototypes.Size() == 3);
+        QVERIFY(prototypes.Size() == 4);
 
         QVERIFY(prototypes.HasType("Vector_c"));
         QVERIFY(prototypes.HasType("LilBity_c"));
@@ -607,13 +607,13 @@ void ProtobetterTest::TestAgainstProtobetterC()
 
         auto rootTypeNames = dynamicTypes.GetRootTypeNames();
 
-        QVERIFY(rootTypeNames.size() == 3);
+        QVERIFY(rootTypeNames.size() == 4);
 
         QVERIFY(rootTypeNames[0] == "Vector_c");
         QVERIFY(rootTypeNames[1] == "LilBity_c");
         QVERIFY(rootTypeNames[2] == "Bittylicious_c");
 
-        QVERIFY(dynamicTypes.Size() == 3);
+        QVERIFY(dynamicTypes.Size() == 4);
 
         QVERIFY(dynamicTypes.HasType("Vector_c"));
         QVERIFY(dynamicTypes.HasType("LilBity_c"));
@@ -638,5 +638,91 @@ void ProtobetterTest::TestAgainstProtobetterC()
     {
         QFAIL(e.what());
     }
+}
+
+void ProtobetterTest::TestSuperBityFromPtypeFile()
+{
+    try
+    {
+        Protobetter::PrototypeCollection prototypes;
+
+        prototypes.LoadPrototypesFromPType(QString(":/protobetter_test/data/test_c.ptype"));
+
+        QVERIFY(prototypes.Size() == 4);
+
+        QVERIFY(prototypes.HasType("Vector_c"));
+        QVERIFY(prototypes.HasType("LilBity_c"));
+        QVERIFY(prototypes.HasType("Bittylicious_c"));
+        QVERIFY(prototypes.HasType("SuperBity_c"));
+
+        auto dynamicTypes = Protobetter::DynamicTypeCollection::FromPrototypeCollection(prototypes);
+
+        QVERIFY(dynamicTypes.Size() == 4);
+
+        QVERIFY(dynamicTypes.HasType("Vector_c"));
+        QVERIFY(dynamicTypes.HasType("LilBity_c"));
+        QVERIFY(dynamicTypes.HasType("Bittylicious_c"));
+        QVERIFY(dynamicTypes.HasType("SuperBity_c"));
+
+        QCOMPARE(dynamicTypes.GetType("Vector_c")->Size(), 13);
+        QCOMPARE(dynamicTypes.GetType("LilBity_c")->Size(), 53);
+        QCOMPARE(dynamicTypes.GetType("Bittylicious_c")->Size(), 150);
+        QCOMPARE(dynamicTypes.GetType("SuperBity_c")->Size(), 393);
+
+        auto vectorRootType = dynamicTypes.GetType("Vector_c");
+        auto lilBittyRootType = dynamicTypes.GetType("LilBity_c");
+        auto bittyliciousRootType = dynamicTypes.GetType("Bittylicious_c");
+        auto superBityRootType = dynamicTypes.GetType("SuperBity_c");
+
+        /* create instances of these composite types */
+        Protobetter::DynamicObject mysuper(superBityRootType);
+        Protobetter::DynamicObject mysuper2(superBityRootType);
+
+        /* Set initial values of mysuper */
+        mysuper.SetUnsignedBitfield("a", 1);
+        mysuper.SetUnsignedBitfield("b", 3214);
+        InitVectorWithExpectedValues(mysuper.GetObject(vectorRootType, "c[0]"));
+        InitVectorWithExpectedValues(mysuper.GetObject(vectorRootType, "c[1]"));
+        mysuper.SetFloat("d", 310.0f);
+        InitLilBittyWithExpectedValues(vectorRootType, mysuper.GetObject(lilBittyRootType, "e"));
+        InitBittyliciousWithExpectedValues(lilBittyRootType, vectorRootType, mysuper.GetObject(bittyliciousRootType, "f[0]"));
+        InitBittyliciousWithExpectedValues(lilBittyRootType, vectorRootType, mysuper.GetObject(bittyliciousRootType, "f[1]"));
+        mysuper.SetDouble("g", 54.1234); 
+        
+        // Verify that 2nd instance data is all zeroed out...
+        const char *mysuper2Data = mysuper2.Data();
+        for (int i = 0; i < mysuper2.Size(); ++i)
+            QCOMPARE(mysuper2Data[i], 0);
+
+        // Set data of 2nd instance to 1st
+        mysuper2.SetData(mysuper.Data());
+        QCOMPARE(mysuper.Size(), mysuper2.Size());
+
+        // Verify that 2nd instance data matches 1st
+        QCOMPARE(mysuper.GetUnsignedBitfield("a"), mysuper2.GetUnsignedBitfield("a"));
+        QCOMPARE(mysuper.GetUnsignedBitfield("b"), mysuper2.GetUnsignedBitfield("b"));
+
+        VerifyVectorExpectedValues(mysuper.GetObject(vectorRootType, "c[0]"));
+        VerifyVectorExpectedValues(mysuper.GetObject(vectorRootType, "c[1]"));
+        VerifyVectorExpectedValues(mysuper2.GetObject(vectorRootType, "c[0]"));
+        VerifyVectorExpectedValues(mysuper2.GetObject(vectorRootType, "c[1]"));
+
+        CompareFloats(mysuper.GetFloat("d"), mysuper2.GetFloat("d"));
+
+        VerifyLilBittyExpectedValues(vectorRootType, mysuper.GetObject(lilBittyRootType, "e"));
+        VerifyLilBittyExpectedValues(vectorRootType, mysuper2.GetObject(lilBittyRootType, "e"));
+
+        VerifyBittyliciousExpectedValues(lilBittyRootType, vectorRootType, mysuper.GetObject(bittyliciousRootType, "f[0]"));
+        VerifyBittyliciousExpectedValues(lilBittyRootType, vectorRootType, mysuper.GetObject(bittyliciousRootType, "f[1]"));
+        VerifyBittyliciousExpectedValues(lilBittyRootType, vectorRootType, mysuper2.GetObject(bittyliciousRootType, "f[0]"));
+        VerifyBittyliciousExpectedValues(lilBittyRootType, vectorRootType, mysuper2.GetObject(bittyliciousRootType, "f[1]"));
+
+        CompareDoubles(mysuper.GetDouble("g"), mysuper2.GetDouble("g"));
+    }
+    catch (const std::exception &e)
+    {
+        QFAIL(e.what());
+    }
+
 }
 

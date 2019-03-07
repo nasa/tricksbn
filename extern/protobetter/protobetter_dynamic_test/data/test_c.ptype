@@ -38,5 +38,20 @@
             {"name":"d", "type":"Vector_c"},
             {"name":"e", "type":"int8_t", "bits":3}
         ]
+    },
+    {
+        "typeName":"SuperBity_c",
+        "headerFileName":"protobetter_generated.h",
+
+        "members":
+        [
+            {"name":"a", "type":"uint16_t", "bits":1},
+            {"name":"b", "type":"uint16_t", "bits":15},
+            {"name":"c", "type":"Vector_c", "arraylen":2},
+            {"name":"d", "type":"float"},
+            {"name":"e", "type":"LilBity_c"},
+            {"name":"f", "type":"Bittylicious_c", "arraylen":2},
+            {"name":"g", "type":"double"}
+        ]
     }
 ]

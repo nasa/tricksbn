@@ -36,5 +36,8 @@ win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../protobetter_dynamic
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../protobetter_dynamic_lib/debug/ -lprotobetter_dynamic_lib
 else:unix: LIBS += -L$$OUT_PWD/../protobetter_dynamic_lib/ -lprotobetter_dynamic_lib
 
-INCLUDEPATH += $$PWD/../protobetter_dynamic_lib/include
+# INCLUDEPATH += $$PWD/../protobetter_dynamic_lib/include
 DEPENDPATH += $$PWD/../protobetter_dynamic_lib
+
+QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN/../protobetter_dynamic_lib\'"
+
