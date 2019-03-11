@@ -123,7 +123,7 @@ namespace
 
     void VerifyVectorExpectedValues(Protobetter::DynamicObject vector)
     {
-        QCOMPARE(vector.GetUnsignedBitfield("id"), 15);
+        QCOMPARE((int)vector.GetUnsignedBitfield("id"), 15);
         CompareFloats(vector.GetFloat("x"), 1.2345f);
         CompareFloats(vector.GetFloat("y"), 97865.4321f);
         CompareFloats(vector.GetFloat("z"), 867.5309f);
@@ -178,9 +178,9 @@ namespace
     void VerifyLilBittyExpectedValues(Protobetter::DynamicType::Ptr vectorRootType, Protobetter::DynamicObject lilbitty)
     {
         CompareFloats(lilbitty.GetFloat("a"), 123.123f);
-        QCOMPARE(lilbitty.GetUnsignedBitfield("b"), 134217728);
-        QCOMPARE(lilbitty.GetUnsignedBitfield("c"), 1);
-        QCOMPARE(lilbitty.GetUnsignedBitfield("d"), 7);
+        QCOMPARE((int)lilbitty.GetUnsignedBitfield("b"), 134217728);
+        QCOMPARE((int)lilbitty.GetUnsignedBitfield("c"), 1);
+        QCOMPARE((int)lilbitty.GetUnsignedBitfield("d"), 7);
 
         VerifyVectorExpectedValues(lilbitty.GetObject(vectorRootType, "e[0]"));
         VerifyVectorExpectedValues(lilbitty.GetObject(vectorRootType, "e[1]"));
@@ -350,12 +350,12 @@ void ProtobetterTest::TestDynamicAPI()
         QCOMPARE(type->GetFieldType("bitfieldE"), Protobetter::SignedBitfield);
         QCOMPARE(type->GetFieldType("bitfieldF"), Protobetter::UnsignedBitfield);
 
-        QCOMPARE(myStructInstance.GetUnsignedBitfield("bitfieldA"), 3);
-        QCOMPARE(myStructInstance.GetUnsignedBitfield("bitfieldB"), 1);
-        QCOMPARE(myStructInstance.GetSignedBitfield("bitfieldC"), -5);
-        QCOMPARE(myStructInstance.GetSignedBitfield("bitfieldD"), -1024);
-        QCOMPARE(myStructInstance.GetSignedBitfield("bitfieldE"), 7);
-        QCOMPARE(myStructInstance.GetUnsignedBitfield("bitfieldF"), 1);
+        QCOMPARE((int)myStructInstance.GetUnsignedBitfield("bitfieldA"), 3);
+        QCOMPARE((int)myStructInstance.GetUnsignedBitfield("bitfieldB"), 1);
+        QCOMPARE((int)myStructInstance.GetSignedBitfield("bitfieldC"), -5);
+        QCOMPARE((int)myStructInstance.GetSignedBitfield("bitfieldD"), -1024);
+        QCOMPARE((int)myStructInstance.GetSignedBitfield("bitfieldE"), 7);
+        QCOMPARE((int)myStructInstance.GetUnsignedBitfield("bitfieldF"), 1);
 
         QCOMPARE(type->GetFieldType("fieldA"), Protobetter::Float);
         QCOMPARE(type->GetFieldType("fieldB"), Protobetter::Double);
@@ -364,7 +364,7 @@ void ProtobetterTest::TestDynamicAPI()
         CompareDoubles(myStructInstance.GetDouble("fieldB"), 9876.5432f);
 
         QCOMPARE(myStructInstance.GetInt32("fieldC"), -421234);
-        QCOMPARE(myStructInstance.GetUInt32("fieldD"), 678910);
+        QCOMPARE((long)myStructInstance.GetUInt32("fieldD"), 678910);
 
         QCOMPARE(type->GetFieldType("vectorField[0].x"), Protobetter::Float);
         QCOMPARE(type->GetFieldType("vectorField[0].y"), Protobetter::Float);
@@ -443,10 +443,10 @@ void ProtobetterTest::TestDynamicAPI()
         QCOMPARE(type->GetFieldType("tinyBits"), Protobetter::UnsignedBitfield);
         QCOMPARE(type->GetFieldType("tinyBitsRollover"), Protobetter::UnsignedBitfield);
 
-        QCOMPARE(myStructInstance.GetUnsignedBitfield("tinyBits"), 3);
+        QCOMPARE((int)myStructInstance.GetUnsignedBitfield("tinyBits"), 3);
 
         // we expect a rollover here b.c. we set a 5-bit unsigned field to 32
-        QCOMPARE(myStructInstance.GetUnsignedBitfield("tinyBitsRollover"), 0);
+        QCOMPARE((int)myStructInstance.GetUnsignedBitfield("tinyBitsRollover"), 0);
     }
     catch (const std::exception &e)
     {
@@ -529,9 +529,9 @@ void ProtobetterTest::TestBittylicousFromPtypeFile()
         QVERIFY(dynamicTypes.HasType("LilBity_c"));
         QVERIFY(dynamicTypes.HasType("Bittylicious_c"));
 
-        QCOMPARE(dynamicTypes.GetType("Vector_c")->Size(), 13);
-        QCOMPARE(dynamicTypes.GetType("LilBity_c")->Size(), 53);
-        QCOMPARE(dynamicTypes.GetType("Bittylicious_c")->Size(), 150);
+        QCOMPARE((int)dynamicTypes.GetType("Vector_c")->Size(), 13);
+        QCOMPARE((int)dynamicTypes.GetType("LilBity_c")->Size(), 53);
+        QCOMPARE((int)dynamicTypes.GetType("Bittylicious_c")->Size(), 150);
 
         auto vectorRootType = dynamicTypes.GetType("Vector_c");
         auto lilBittyRootType = dynamicTypes.GetType("LilBity_c");
@@ -554,7 +554,7 @@ void ProtobetterTest::TestBittylicousFromPtypeFile()
         const char *myBittylicious2Data = myBittylicious2.Data();
 
         // verify that the 2nd instance's data is all zeroed out...
-        for (int i = 0; i < myBittylicious2.Size(); ++i)
+        for (std::size_t i = 0; i < myBittylicious2.Size(); ++i)
             QCOMPARE(myBittylicious2Data[i], 0);
 
         myBittylicious2.SetData(myBittylicious.Data());
@@ -570,7 +570,7 @@ void ProtobetterTest::TestBittylicousFromPtypeFile()
         // verify that it's data was in fact zeroed out without affecting the second instance
         const char *myBittyliciousData = myBittylicious.Data();
 
-        for (int i = 0; i < myBittylicious.Size(); ++i)
+        for (std::size_t i = 0; i < myBittylicious.Size(); ++i)
             QCOMPARE(myBittyliciousData[i], 0);
 
         VerifyBittyliciousExpectedValues(lilBittyRootType, vectorRootType, myBittylicious2);
@@ -585,7 +585,7 @@ void ProtobetterTest::TestAgainstProtobetterC()
 {
     try
     {
-        Bittylicious_c a, b;
+        Bittylicious_c a;
 
         char buffer[STRUCT_BITTYLICIOUS_C_PACKED_SIZE];
 
@@ -619,9 +619,9 @@ void ProtobetterTest::TestAgainstProtobetterC()
         QVERIFY(dynamicTypes.HasType("LilBity_c"));
         QVERIFY(dynamicTypes.HasType("Bittylicious_c"));
 
-        QCOMPARE(dynamicTypes.GetType("Vector_c")->Size(), 13);
-        QCOMPARE(dynamicTypes.GetType("LilBity_c")->Size(), 53);
-        QCOMPARE(dynamicTypes.GetType("Bittylicious_c")->Size(), STRUCT_BITTYLICIOUS_C_PACKED_SIZE);
+        QCOMPARE((int)dynamicTypes.GetType("Vector_c")->Size(), 13);
+        QCOMPARE((int)dynamicTypes.GetType("LilBity_c")->Size(), 53);
+        QCOMPARE((int)dynamicTypes.GetType("Bittylicious_c")->Size(), STRUCT_BITTYLICIOUS_C_PACKED_SIZE);
 
         auto vectorRootType = dynamicTypes.GetType("Vector_c");
         auto lilBittyRootType = dynamicTypes.GetType("LilBity_c");
@@ -691,7 +691,7 @@ void ProtobetterTest::TestSuperBityFromPtypeFile()
         
         // Verify that 2nd instance data is all zeroed out...
         const char *mysuper2Data = mysuper2.Data();
-        for (int i = 0; i < mysuper2.Size(); ++i)
+        for (std::size_t i = 0; i < mysuper2.Size(); ++i)
             QCOMPARE(mysuper2Data[i], 0);
 
         // Set data of 2nd instance to 1st
