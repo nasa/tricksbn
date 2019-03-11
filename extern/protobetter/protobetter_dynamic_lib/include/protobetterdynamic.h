@@ -134,6 +134,8 @@ namespace Protobetter
 
         DynamicType(QString name, bool isRoot = false);
 
+        virtual ~DynamicType() {};
+
         bool isRoot;
 
         QString name;

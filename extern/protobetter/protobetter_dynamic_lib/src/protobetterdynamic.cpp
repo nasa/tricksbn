@@ -80,7 +80,7 @@ namespace
             // somebody give that wonderful human being an award!
             std::bitset<64> bits(magnitude);
 
-            for (int i = 0; i < bitfieldWidth; ++i)
+            for (std::size_t i = 0; i < bitfieldWidth; ++i)
             {
                 bits[i] = bits[i] ? 0 : 1;
             }
@@ -101,7 +101,7 @@ namespace
 
         if (isNegative)
         {
-            for (int i = 0; i < bitfieldWidth; ++i)
+            for (std::size_t i = 0; i < bitfieldWidth; ++i)
             {
                 bits[i] = bits[i] ? 0 : 1;
             }
@@ -120,17 +120,17 @@ namespace
 }
 
 Protobetter::FieldAccessor::FieldAccessor()
-    : size(0), byteOffset(0), bitOffset(0), packingMask(0), type(ProtobetterFieldType::Object)
+    : byteOffset(0), size(0), bitOffset(0), packingMask(0), type(ProtobetterFieldType::Object)
 {
 }
 
 Protobetter::FieldAccessor::FieldAccessor(ProtobetterFieldType type, std::size_t size)
-    : size(size), byteOffset(0), bitOffset(0), packingMask(0), type(type)
+    : byteOffset(0), size(size), bitOffset(0), packingMask(0), type(type)
 {
 }
 
 Protobetter::DynamicType::DynamicType(QString name, bool isRoot)
-    : name(name), isRoot(isRoot)
+    : isRoot(isRoot), name(name)
 {
 }
 
@@ -254,7 +254,7 @@ void Protobetter::DynamicTypeCollection::CreateDynamicTypeFromPrototypeRecursive
         std::size_t memberSize = 0;
         bool isPrimitiveType = true;
 
-        ProtobetterFieldType type;
+        ProtobetterFieldType type = ProtobetterFieldType::Object;
 
         if (ptype.members[i].type == "uint8_t")
         {
@@ -341,7 +341,7 @@ void Protobetter::DynamicTypeCollection::CreateDynamicTypeFromPrototypeRecursive
             {
                 currentBitfieldCollection = Protobetter::BitfieldCollection::CreateNewBitfieldCollection(memberSize);
             }
-            else if (currentBitfieldCollection->Size() != memberSize || currentBitfieldCollection->BitsAvailable() < ptype.members[i].bits)
+            else if (currentBitfieldCollection->Size() != memberSize || (int)currentBitfieldCollection->BitsAvailable() < ptype.members[i].bits)
             {
                 currentBitfieldCollection->Finalize();
                 newDynamicType->AddField(currentBitfieldCollection);
@@ -427,7 +427,7 @@ Protobetter::DynamicTypeCollection Protobetter::DynamicTypeCollection::FromProto
     Protobetter::DynamicTypeCollection dynamicTypes;
 
     // recursively build up your DynamicTypeCollection
-    for (int i = 0; i < prototypes.Size(); ++i)
+    for (std::size_t i = 0; i < prototypes.Size(); ++i)
     {
         Protobetter::DynamicTypeCollection::CreateDynamicTypeFromPrototypeRecursive(prototypes, dynamicTypes, prototypes.GetType(i));
     }
@@ -591,7 +591,7 @@ void Protobetter::BitfieldCollection::Finalize()
     }
 }
 
-Protobetter::ProtobetterFieldType Protobetter::BitfieldCollection::GetFieldType(QString name)
+Protobetter::ProtobetterFieldType Protobetter::BitfieldCollection::GetFieldType(QString UNUSED(name))
 {
     if (!this->isComplete)
     {
@@ -681,13 +681,13 @@ QSharedPointer<Protobetter::PrimitiveField> Protobetter::PrimitiveField::CreateN
     return QSharedPointer<Protobetter::PrimitiveField>(new Protobetter::PrimitiveField(name, type, size));
 }
 
-Protobetter::ProtobetterFieldType Protobetter::PrimitiveField::GetFieldType(QString name)
+Protobetter::ProtobetterFieldType Protobetter::PrimitiveField::GetFieldType(QString UNUSED(name))
 {
     return this->type;
 }
 
 Protobetter::PrimitiveField::PrimitiveField(QString name, ProtobetterFieldType type, std::size_t size)
-    : DynamicType(name, false), size(size), type(type), memberAccessors(new QMap<QString, Protobetter::FieldAccessor>())
+    : DynamicType(name, false), type(type), size(size), memberAccessors(new QMap<QString, Protobetter::FieldAccessor>())
 {
     this->memberAccessors->insert(this->name, Protobetter::FieldAccessor(type, this->size));
 }
@@ -726,7 +726,7 @@ QSharedPointer<Protobetter::FieldCollection> Protobetter::FieldCollection::Creat
 
     Protobetter::FieldCollection *newField = new Protobetter::FieldCollection(fieldName, 0);
 
-    for (int i = 0; i < root->MemberCount(); ++i)
+    for (std::size_t i = 0; i < root->MemberCount(); ++i)
     {
         newField->AddField(root->GetField(i));
     }
@@ -773,7 +773,7 @@ QSharedPointer<Protobetter::DynamicType> Protobetter::FieldCollection::GetField(
 }
 
 Protobetter::DynamicObject::DynamicObject(QSharedPointer<Protobetter::DynamicType> type)
-    : memberAccessors(type->GetMemberMap()), typeName(type->Name()), ownsData(true)
+    : ownsData(true), typeName(type->Name()), memberAccessors(type->GetMemberMap())
 {
     if (!type->IsComplete())
     {
@@ -787,8 +787,8 @@ Protobetter::DynamicObject::DynamicObject(QSharedPointer<Protobetter::DynamicTyp
     this->size = size;
 }
 
-Protobetter::DynamicObject::DynamicObject(QSharedPointer<Protobetter::DynamicType> type, char *data)
-    : memberAccessors(type->GetMemberMap()), typeName(type->Name()), size(size), data(data), ownsData(false)
+Protobetter::DynamicObject::DynamicObject(QSharedPointer<Protobetter::DynamicType> type, char *_data)
+    : ownsData(false), data(_data), size(type->Size()), typeName(type->Name()), memberAccessors(type->GetMemberMap())
 {
 }
 
