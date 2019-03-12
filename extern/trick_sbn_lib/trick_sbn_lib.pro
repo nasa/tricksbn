@@ -29,25 +29,27 @@ DEFINES += QT_DEPRECATED_WARNINGS
 DEFINES += PROTOBETTER_DYNAMIC_LIB_LIBRARY
 
 SOURCES += \
-        qsbn.cpp \
-        ../ccsds_header_lib/src/cfe/cfe_sb_msg_id_util.c \
-        ../protobetter/protobetter_dynamic_lib/src/protobetterdynamic.cpp \
-        trick_ccsds_mapping.cpp \
+    qsbn.cpp \
+    ../ccsds_header_lib/src/cfe/cfe_sb_msg_id_util.c \
+    ../protobetter/protobetter_dynamic_lib/src/protobetterdynamic.cpp \
+    trick_ccsds_mapping.cpp \
     trick_ccsds_vs_mapping.cpp \
-    trick_ccsds_memory_manager.cpp
+    trick_ccsds_memory_manager.cpp \
+    trick_ccsds_simulated_backend.cpp
 
 HEADERS += \
-        qsbn.h \
-        trick_sbn_lib_global.h \
-        trick_ccsds_mapping.h \
+    qsbn.h \
+    trick_sbn_lib_global.h \
+    trick_ccsds_mapping.h \
     trick_ccsds_vs_mapping.h \
-    trick_ccsds_memory_manager.h
+    trick_ccsds_memory_manager.h \
+    trick_ccsds_simulated_backend.h
 
 INCLUDEPATH += \
-        ../ccsds_header_lib/include \
-        ../ccsds_header_lib/include/cfe \
-        ../ccsds_header_lib/include/osal \
-        ../protobetter/protobetter_dynamic_lib/include
+    ../ccsds_header_lib/include \
+    ../ccsds_header_lib/include/cfe \
+    ../ccsds_header_lib/include/osal \
+    ../protobetter/protobetter_dynamic_lib/include
 
 unix {
     target.path = /usr/lib

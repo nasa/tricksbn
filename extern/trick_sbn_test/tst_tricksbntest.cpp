@@ -12,6 +12,7 @@
 #include "qsbn.h"
 #include "trick_ccsds_mapping.h"
 #include "trick_ccsds_memory_manager.h"
+#include "trick_ccsds_simulated_backend.h"
 
 #include "protobetterdynamic.h"
 

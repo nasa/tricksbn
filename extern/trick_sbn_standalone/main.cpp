@@ -10,6 +10,7 @@
 
 #include "qsbn.h"
 #include "trick_ccsds_mapping.h"
+#include "trick_ccsds_simulated_backend.h"
 
 class TvsIoStandaloneCli
 {

@@ -271,8 +271,8 @@ private:
 
     int InitializePeerFromJsonConfig(QJsonObject peerConfig, QSbnPeer &peer);
 
-    QSbn(const QSbn &other);
-    QSbn operator=(const QSbn &other);
+    QSbn(const QSbn &);
+    QSbn operator=(const QSbn &);
 };
 
 #endif // QSBNLIB_H

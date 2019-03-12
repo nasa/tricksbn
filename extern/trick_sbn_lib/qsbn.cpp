@@ -85,7 +85,9 @@ const char * QCcsdsPacket::GetPayloadData() const
 
 QCcsdsPacket::PacketType QCcsdsPacket::GetPacketType() const
 {
-    return (CCSDS_RD_TYPE(((CFE_SB_MsgPtr_t) this->data)->Hdr) == CCSDS_TLM) ? PacketType::Telemetry : PacketType::Command;
+    CFE_SB_MsgPtr_t msg = (CFE_SB_MsgPtr_t) this->data;
+
+    return (CCSDS_RD_TYPE(msg->Hdr) == CCSDS_TLM) ? PacketType::Telemetry : PacketType::Command;
 }
 
 void QCcsdsPacket::SetMessageId(const uint32_t messageId)
@@ -416,12 +418,12 @@ QSbn::QSbn(QJsonObject jsonConfiguration)
     this->Initialize(jsonConfiguration);
 }
 
-QSbn::QSbn(const QSbn &other)
+QSbn::QSbn(const QSbn &)
 {
     throw std::runtime_error("can't copy sbn instances!");
 }
 
-QSbn QSbn::operator =(const QSbn &other)
+QSbn QSbn::operator =(const QSbn &)
 {
     throw std::runtime_error("can't copy sbn instances!");
 }
@@ -585,7 +587,7 @@ int QSbn::SendSubscriptionsToPeers()
         const char *packetData = packet.GetPacketData();
         int packetLength = packet.GetPacketLength();
 
-        for (int i = 0; i < this->peers.size(); ++i)
+        for (size_t i = 0; i < this->peers.size(); ++i)
         {
             int bytesSent = this->socket.writeDatagram(
                         packetData, packetLength,
@@ -616,7 +618,7 @@ int QSbn::Heartbeat()
 
             int length = heartbeatMsg.GetPacketLength();
 
-            for (int i = 0; i < this->peers.size(); ++i)
+            for (size_t i = 0; i < this->peers.size(); ++i)
             {
                 int bytesSent = this->socket.writeDatagram(
                             heartbeatMsg.GetPacketData(),
@@ -652,7 +654,7 @@ int QSbn::StartQSbn()
     }
     else
     {
-        this->currentState == QSbn::UnkownError;
+        this->currentState = QSbn::UnkownError;
         return -1;
     }
 
@@ -717,7 +719,7 @@ int QSbn::InitializePeerFromJsonConfig(QJsonObject peerConfig, QSbnPeer &peer)
 
 int QSbn::GetPeerInfo(uint32_t cpuId, QSbnPeer &peerInfo)
 {
-    for (int i = 0; i < this->peers.size(); ++i)
+    for (size_t i = 0; i < this->peers.size(); ++i)
     {
         if (this->peers[i].cpuId == cpuId)
         {
@@ -731,7 +733,7 @@ int QSbn::GetPeerInfo(uint32_t cpuId, QSbnPeer &peerInfo)
 
 int QSbn::GetPeerIndexFromCpuId(uint32_t cpuId)
 {
-    for (int i = 0; i < this->peers.size(); ++i)
+    for (size_t i = 0; i < this->peers.size(); ++i)
     {
         if (this->peers[i].cpuId == cpuId)
         {
@@ -802,7 +804,7 @@ int QSbn::ProcessIncomingMessages(QCcsdsPacket *msgQueue, int queueSize)
 
         int64_t currentTime = QDateTime::currentMSecsSinceEpoch();
 
-        for (int i = 0; i < this->peers.size(); ++i)
+        for (size_t i = 0; i < this->peers.size(); ++i)
         {
             if (this->peers[i].isConnected
                     && currentTime - this->peers[i].lastSeen > this->connectionTimeout)
@@ -940,7 +942,7 @@ int QSbn::Send(QCcsdsPacket *msgQueue, int count)
             int messageSize = msgQueue[i].GetPacketLength();
             const char *message = msgQueue[i].GetPacketData();
 
-            for (int j = 0; j < this->peers.size(); ++j)
+            for (size_t j = 0; j < this->peers.size(); ++j)
             {
                 int bytesSent = this->socket.writeDatagram(
                                     message, messageSize,
@@ -966,7 +968,7 @@ int QSbn::Send(QCcsdsPacket *msgQueue, int count)
             QSbnPacket packet(this->hostConfig.cpuId, QSbnPacket::SBN_APP_MSG, payloadLength);
             packet.SetPayloadData(msgQueue[i].GetPacketData(), payloadLength);
 
-            for (int j = 0; j < this->peers.size(); ++j)
+            for (size_t j = 0; j < this->peers.size(); ++j)
             {
                 if (this->peers[j].isConnected && this->peers[j].IsSubscribedToMessageId(mid))
                 {

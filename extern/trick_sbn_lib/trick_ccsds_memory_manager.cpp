@@ -372,7 +372,8 @@ int TrickMemoryManagerClient::WriteData(QCcsdsPacket &packet)
         }
     }
 
-    std::cout << "ERROR TrickMemoryManagerClient::WriteData() called w/ no mappings for message ID = " << QString::number(packetId, 16).toStdString() << std::endl;
+    std::cout << "ERROR TrickMemoryManagerClient::WriteData() called w/ no mappings for message ID = " 
+        << QString::number(packetId, 16).toStdString() << std::endl;
 
     return -1;
 }
