@@ -8,6 +8,7 @@ LIBRARY DEPENDENCY:
         (../../extern/ccsds_header_lib/src/cfe/cfe_sb_msg_id_util.c)
         (../../extern/trick_sbn_lib/qsbn.cpp)
         (../../extern/trick_sbn_lib/trick_ccsds_mapping.cpp)
+        (../../extern/trick_sbn_lib/trick_ccsds_sim_backend.cpp)
         (../../extern/trick_sbn_lib/trick_ccsds_memory_manager.cpp)
     )
 */

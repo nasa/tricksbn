@@ -57,18 +57,5 @@ protected:
 
     QVector<TrickVariableMapping> mappings;
 };
-/*
-class TRICK_SBN_LIBSHARED_EXPORT SimulatedTrickBackend : public TrickCcsdsMappingClient
-{
-public:
 
-    SimulatedTrickBackend();
-    ~SimulatedTrickBackend();
-
-    int Initialize(Protobetter::DynamicTypeCollection &prototypes, QJsonArray &trickVariableMappings) override;
-
-    int ReadData(QCcsdsPacket *packetArray, int maxMessages) override;
-    int WriteData(QCcsdsPacket &packet) override;
-};
-*/
 #endif // TRICK_CCSDS_MAPPING_H
