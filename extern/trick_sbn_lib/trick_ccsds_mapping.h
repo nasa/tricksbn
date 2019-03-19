@@ -53,8 +53,11 @@ public:
 
     QVector<uint32_t> GetInboundMids();
 
+    void SetDebug(bool value) { debug = value; };
+
 protected:
 
+    bool debug;
     QVector<TrickVariableMapping> mappings;
 };
 

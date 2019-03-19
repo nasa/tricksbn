@@ -152,6 +152,7 @@ TrickVariableMapping TrickVariableMapping::FromJson(Protobetter::DynamicType::Pt
 }
 
 TrickCcsdsMappingClient::TrickCcsdsMappingClient()
+    :debug(false)
 {
 
 }

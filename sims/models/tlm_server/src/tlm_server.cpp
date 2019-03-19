@@ -38,11 +38,7 @@ void InitTlmServer(TelemetryServerConfig *config)
 
     prototypes = new Protobetter::PrototypeCollection;
 
-#ifdef TRICK_SBN_DEBUG_LOGGING_ENABLED
-
-        std::cout << "Initializing Trick-SBN with debug logging enabled" << std::endl;
-
-#endif
+    std::cout << "Initializing Trick-SBN" << std::endl;
 
     QDir tvmFileDir(QString(config->tvmFileDir.c_str()));
     QDir prototypeFileDir(QString(config->prototypeFileDir.c_str()));
@@ -189,6 +185,7 @@ void InitTlmServer(TelemetryServerConfig *config)
 void RunTlmServer(TelemetryServerState *data)
 {
     // this doesn't execute while sim is frozen
+    mappingClient->SetDebug(data->debugEnabled);
 
     // map data from QSbn to trick memory
     int packetCount = sbn->ProcessIncomingMessages(packetBuffer, packetBufferSize);

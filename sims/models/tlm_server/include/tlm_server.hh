@@ -31,9 +31,9 @@ typedef struct
 
 typedef struct
 {
-    // TODO: judgement call - but I don't think we really need
-    // to expose any state here... get rid of this?
-
+    bool debugEnabled;
+    // TODO: Decide if anything else needs to be exposed
+    // or create a TelemetryServer class
 } TelemetryServerState;
 
 void InitTlmServer(TelemetryServerConfig *data);
