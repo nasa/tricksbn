@@ -34,7 +34,7 @@ QCcsdsPacket::QCcsdsPacket(const QCcsdsPacket &other)
     memcpy(this->data, other.data, QSBN_MAX_CCSDS_PACKET_SIZE);
 }
 
-QCcsdsPacket QCcsdsPacket::operator=(const QCcsdsPacket &other)
+QCcsdsPacket& QCcsdsPacket::operator=(const QCcsdsPacket &other)
 {
     if (this != &other)
     {
@@ -159,7 +159,7 @@ QSbnPacket::~QSbnPacket()
 {
 }
 
-QSbnPacket QSbnPacket::operator=(const QSbnPacket &other)
+QSbnPacket& QSbnPacket::operator=(const QSbnPacket &other)
 {
     if (this != &other)
     {
@@ -247,7 +247,7 @@ QSbnSubscriptionPacket::QSbnSubscriptionPacket(const QSbnSubscriptionPacket &oth
     memcpy(this->data, other.data, QSBN_MAX_SBN_PACKET_SIZE - 7);
 }
 
-QSbnSubscriptionPacket QSbnSubscriptionPacket::operator =(const QSbnSubscriptionPacket &other)
+QSbnSubscriptionPacket& QSbnSubscriptionPacket::operator =(const QSbnSubscriptionPacket &other)
 {
     if (this != &other)
     {
@@ -310,8 +310,6 @@ int QSbnSubscriptionPacket::AddSubscription(uint32_t messageId, uint16_t qos)
 
 int QSbnSubscriptionPacket::RemoveSubscription(uint32_t messageId)
 {
-    char buffer[QSBN_MAX_SBN_PACKET_SIZE - 7];
-
     uint16_t subCount = this->GetSubscriptionCount();
 
     int subscriptionIndex = -1;
@@ -331,6 +329,8 @@ int QSbnSubscriptionPacket::RemoveSubscription(uint32_t messageId)
     {
         if (subCount > subscriptionIndex + 1)
         {
+            char buffer[QSBN_MAX_SBN_PACKET_SIZE - 7];
+
             uint16_t subsToCopy = subCount - (subscriptionIndex + 1);
 
             memcpy(buffer, &this->data[50+(subscriptionIndex+1)*6], subsToCopy*6);
@@ -359,12 +359,12 @@ int QSbnSubscriptionPacket::SetPacketData(const char *data, const uint16_t lengt
  * *****************************************************************************************************************************/
 
 QSbnPeer::QSbnPeer()
-    : cpuId(0), ipAddress(), port(), subscriptionMids()
+    : cpuId(0), ipAddress(), port(), subscriptionMids(), isConnected(false), lastSeen(0)
 {
 }
 
 QSbnPeer::QSbnPeer(const uint32_t cpuId, const QString &ipAddress, const uint16_t port)
-    : cpuId(cpuId), ipAddress(ipAddress), port(port), subscriptionMids()
+    : cpuId(cpuId), ipAddress(ipAddress), port(port), subscriptionMids(), isConnected(false), lastSeen(0)
 {
 }
 
@@ -401,19 +401,19 @@ QSharedPointer<QSbnSubscriptionPacket> QSbnPeer::ToSubscriptionPacket()
  * *****************************************************************************************************************************/
 
 QSbn::QSbn()
-    : currentState(QSbn::Uninitialized), lastHeartbeat(0)
+    : currentState(QSbn::Uninitialized), lastHeartbeat(0), connectionTimeout(0)
 {
     this->currentState = QSbn::Uninitialized;
 }
 
 QSbn::QSbn(QString jsonConfigurationData)
-    : currentState(QSbn::Uninitialized), lastHeartbeat(0)
+    : currentState(QSbn::Uninitialized), lastHeartbeat(0), connectionTimeout(0)
 {
     this->Initialize(jsonConfigurationData);
 }
 
 QSbn::QSbn(QJsonObject jsonConfiguration)
-    : currentState(QSbn::Uninitialized), lastHeartbeat(0)
+    : currentState(QSbn::Uninitialized), lastHeartbeat(0), connectionTimeout(0)
 {
     this->Initialize(jsonConfiguration);
 }

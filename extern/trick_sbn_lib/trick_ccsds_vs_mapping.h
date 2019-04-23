@@ -10,7 +10,7 @@ public:
     TrickVariableServerClient(QString variableServerIp, uint16_t variableServerPort);
     ~TrickVariableServerClient();
 
-    int Initialize(Protobetter::DynamicTypeCollection &prototypes, QJsonArray &trickVariableMappings);
+    int Initialize(Protobetter::DynamicTypeCollection &prototypes, QJsonArray &trickVariableMappings) override;
 
     int ReadData(QCcsdsPacket *packetArray, int maxMessages) override;
     int WriteData(QCcsdsPacket &packet) override;

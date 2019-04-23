@@ -32,6 +32,7 @@ SOURCES += \
     qsbn.cpp \
     ../ccsds_header_lib/src/cfe/cfe_sb_msg_id_util.c \
     ../protobetter/protobetter_dynamic_lib/src/protobetterdynamic.cpp \
+    trick_ccsds_utils.cpp \
     trick_ccsds_mapping.cpp \
     trick_ccsds_vs_mapping.cpp \
     trick_ccsds_sim_backend.cpp \
@@ -40,6 +41,7 @@ SOURCES += \
 HEADERS += \
     qsbn.h \
     trick_sbn_lib_global.h \
+    trick_ccsds_utils.h \
     trick_ccsds_mapping.h \
     trick_ccsds_vs_mapping.h \
     trick_ccsds_sim_backend.h \

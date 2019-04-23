@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include "trick_ccsds_sim_backend.h"
+#include "trick_ccsds_utils.h"
 
 namespace {
 
@@ -89,63 +90,6 @@ namespace {
             }
         }
     }
-
-    void PrintProtobetterData(TrickVariableMapping &mapping)
-    {
-        for (int i = 0; i < mapping.ccsdsFieldNames.size(); ++i)
-        {
-            std::cout << " - " << mapping.ccsdsFieldNames[i].toStdString() << " = ";
-
-            switch (mapping.ccsdsFieldTypes[i]) 
-            {
-                case Protobetter::UInt8:
-                    std::cout << mapping.data->GetUInt8(mapping.ccsdsFieldNames[i]) << std::endl;
-                    break;
-
-                case Protobetter::UInt16:
-                    std::cout << mapping.data->GetUInt16(mapping.ccsdsFieldNames[i]) << std::endl;
-                    break;
-
-                case Protobetter::UInt32:
-                    std::cout << mapping.data->GetUInt32(mapping.ccsdsFieldNames[i]) << std::endl;
-                    break;
-
-                case Protobetter::UInt64:
-                    std::cout << mapping.data->GetUInt64(mapping.ccsdsFieldNames[i]) << std::endl;
-                    break;
-
-                case Protobetter::Int8:
-                    std::cout << mapping.data->GetInt8(mapping.ccsdsFieldNames[i]) << std::endl;
-                    break;
-
-                case Protobetter::Int16:
-                    std::cout << mapping.data->GetInt16(mapping.ccsdsFieldNames[i]) << std::endl;
-                    break;
-
-                case Protobetter::Int32:
-                    std::cout << mapping.data->GetInt16(mapping.ccsdsFieldNames[i]) << std::endl;
-                    break;
-
-                case Protobetter::Int64:
-                    std::cout << mapping.data->GetInt64(mapping.ccsdsFieldNames[i]) << std::endl;
-                    break;
-
-                case Protobetter::Float:
-                    std::cout << mapping.data->GetFloat(mapping.ccsdsFieldNames[i]) << std::endl;
-                    break;
-
-                case Protobetter::Double:
-                    std::cout << mapping.data->GetDouble(mapping.ccsdsFieldNames[i]) << std::endl;
-                    break;
-
-                default:
-                    break;
-            }
-        }
-
-        std::cout << std::endl;
-    }
-
 }
 
 SimulatedTrickBackend::SimulatedTrickBackend()
@@ -238,7 +182,10 @@ int SimulatedTrickBackend::WriteData(QCcsdsPacket &packet)
                 std::cout << " ***\n" << std::endl;
             }
 
-            PrintProtobetterData(this->mappings[i]);
+            if (debug)
+            {
+                TrickCcsdsUtils::PrintProtobetterData(this->mappings[i]);
+            }
 
             return 1;
         }

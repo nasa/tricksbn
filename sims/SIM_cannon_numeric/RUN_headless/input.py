@@ -1,5 +1,8 @@
-tlmServer.configData.tvmFileDir = "/users/dspray1/code/tricksbn/sims/SIM_cannon_numeric/bittylicious_tvm_files"
-tlmServer.configData.prototypeFileDir = "/users/dspray1/code/tricksbn/sims/SIM_cannon_numeric/bittylicious_ptype_files"
+#trick.real_time_enable()
+trick.frame_log_on()
+
+tlmServer.configData.tvmFileDir = "bittylicious_tvm_files"
+tlmServer.configData.prototypeFileDir = "bittylicious_ptype_files"
 
 tlmServer.configData.qsbnJsonConfig = '''
 

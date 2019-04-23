@@ -47,7 +47,7 @@ public:
 
     ~QCcsdsPacket();
 
-    QCcsdsPacket operator=(const QCcsdsPacket &other);
+    QCcsdsPacket& operator=(const QCcsdsPacket &other);
 
     uint32_t GetMessageId() const;
     uint16_t GetCommandCode() const;
@@ -59,7 +59,7 @@ public:
     const char * GetPacketData() const;
     const char * GetPayloadData() const;
 
-    QCcsdsPacket::PacketType GetPacketType() const;
+    PacketType GetPacketType() const;
 
     void SetMessageId(const uint32_t messageId);
     void SetCommandCode(const uint16_t cmdCode);
@@ -88,7 +88,7 @@ public:
 
     ~QSbnSubscriptionPacket();
 
-    QSbnSubscriptionPacket operator=(const QSbnSubscriptionPacket &other);
+    QSbnSubscriptionPacket& operator=(const QSbnSubscriptionPacket &other);
 
     const char * GetVersionInfo() const;
     uint16_t GetSubscriptionCount() const;
@@ -128,19 +128,19 @@ public:
         SBN_HEARTBEAT_MSG = 0xA0
     };
 
-    QSbnPacket(const QSbnPacket::PacketType type = QSbnPacket::SBN_NO_MSG);
+    explicit QSbnPacket(const QSbnPacket::PacketType type = QSbnPacket::SBN_NO_MSG);
     QSbnPacket(const uint32_t cpuId, const QSbnPacket::PacketType type,
                const uint16_t payloadLength);
     QSbnPacket(const QSbnPacket &other);
 
     ~QSbnPacket();
 
-    QSbnPacket operator=(const QSbnPacket &other);
+    QSbnPacket& operator=(const QSbnPacket &other);
 
     uint16_t GetPacketLength() const;
     uint16_t GetHeaderLength() const;
     uint16_t GetPayloadLength() const;
-    QSbnPacket::PacketType GetPacketType() const;
+    PacketType GetPacketType() const;
     uint32_t GetCpuId() const;
 
     const char * GetPacketData() const;
@@ -217,8 +217,8 @@ public:
 
     QSbn();
 
-    QSbn(QString jsonConfigurationData);
-    QSbn(QJsonObject jsonConfiguration);
+    explicit QSbn(QString jsonConfigurationData);
+    explicit QSbn(QJsonObject jsonConfiguration);
 
     // methods for processing QSbn configuration & initializing QSbn state
     int Initialize(QString jsonConfigurationData);

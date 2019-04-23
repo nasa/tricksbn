@@ -1,5 +1,5 @@
-#ifndef TRICK_CCSDSD_MEMORY_MANAGER_H
-#define TRICK_CCSDSD_MEMORY_MANAGER_H
+#ifndef TRICK_CCSDS_MEMORY_MANAGER_H
+#define TRICK_CCSDS_MEMORY_MANAGER_H
 
 #include "trick_ccsds_mapping.h"
 
@@ -34,7 +34,7 @@ public:
     TrickMemoryManagerClient();
     ~TrickMemoryManagerClient();
 
-    int Initialize(Protobetter::DynamicTypeCollection &prototypes, QJsonArray &trickVariableMappings);
+    int Initialize(Protobetter::DynamicTypeCollection &prototypes, QJsonArray &trickVariableMappings) override;
 
     int ReadData(QCcsdsPacket *packetArray, int maxMessages) override;
     int WriteData(QCcsdsPacket &packet) override;
