@@ -1,7 +1,7 @@
 [
         {
             "messageId":"0x7e6a",
-            "flowDirection":2,
+            "flowDirection":3,
             "cfsStructureType":"Bittylicious_c",
             "members":
             [

@@ -164,6 +164,8 @@ int TrickMemoryManagerClient::ReadData(QCcsdsPacket *packetArray, int maxMessage
                 // TODO: read back the data from the protobetter CCSDS packet
                 // and dump it to stdout for debugging purposes
             }
+
+            messageCount++;
         }
     }
 

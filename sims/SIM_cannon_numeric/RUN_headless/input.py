@@ -20,7 +20,8 @@ tlmServer.configData.qsbnJsonConfig = '''
 
     "sbnPeerConfig":
     [
-        { "cpuId":1, "ip":"127.0.0.1", "port":15820 }
+        { "cpuId":1, "ip":"127.0.0.1", "port":15820 },
+        { "cpuId":3, "ip":"127.0.0.1", "port":15822 }
     ]
 }
 

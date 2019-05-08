@@ -141,6 +141,22 @@ int SimulatedTrickBackend::ReadData(QCcsdsPacket *packetArray, int maxMessages)
             }
 
             packetArray[i].SetPayloadData(currentObject->Data(), currentObject->Size());
+
+            if (debug)
+            {
+                std::cout << "\n*** Sent msgId = "
+                          << QString::number(this->mappings[i].messageId, 16).toStdString();
+
+                if (this->mappings[i].commandCode >= 0)
+                {
+                    std::cout << ", cmdCode = " << this->mappings[i].commandCode << " ***\n" << std::endl;
+                }
+                else
+                {
+                    std::cout  << " ***\n" << std::endl;
+                }
+            }
+
             messageCount++;
         }
     }
@@ -152,45 +168,48 @@ int SimulatedTrickBackend::WriteData(QCcsdsPacket &packet)
 {
     for (int i = 0; i < this->mappings.size(); ++i)
     {
-        if (this->mappings[i].messageId == packet.GetMessageId())
+        if (this->mappings[i].flowDirection == 2 || this->mappings[i].flowDirection == 3)
         {
-            if (packet.GetPacketType() == QCcsdsPacket::Command)
+            if (this->mappings[i].messageId == packet.GetMessageId())
             {
-                if (this->mappings[i].commandCode == packet.GetCommandCode())
+                if (packet.GetPacketType() == QCcsdsPacket::Command)
+                {
+                    if (this->mappings[i].commandCode == packet.GetCommandCode())
+                    {
+                        this->mappings[i].data->SetData(packet.GetPayloadData());
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+                else // it's telemetry
                 {
                     this->mappings[i].data->SetData(packet.GetPayloadData());
                 }
+
+                std::cout << "\n*** Recieved msgId = "
+                          << QString::number(this->mappings[i].messageId, 16).toStdString();
+
+                if (this->mappings[i].commandCode >= 0)
+                {
+                    std::cout << ", cmdCode = " << this->mappings[i].commandCode << " ***\n" << std::endl;
+                }
                 else
                 {
-                    continue;
+                    std::cout << " ***\n" << std::endl;
                 }
-            }
-            else // it's telemetry
-            {
-                this->mappings[i].data->SetData(packet.GetPayloadData());
-            }
 
-            std::cout << "\n*** Recieved msgId = "
-                      << QString::number(this->mappings[i].messageId, 16).toStdString();
+                if (debug)
+                {
+                    TrickCcsdsUtils::PrintProtobetterData(this->mappings[i]);
+                }
 
-            if (this->mappings[i].commandCode >= 0)
-            {
-                std::cout << ", cmdCode = " << this->mappings[i].commandCode << " ***\n" << std::endl;
+                return 1;
             }
-            else
-            {
-                std::cout << " ***\n" << std::endl;
-            }
-
-            if (debug)
-            {
-                TrickCcsdsUtils::PrintProtobetterData(this->mappings[i]);
-            }
-
-            return 1;
         }
     }
 
-    return -1;
+    return 0;
 }
 

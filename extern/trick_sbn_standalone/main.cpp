@@ -150,6 +150,7 @@ void RunTvsIoStandalone(TvsIoStandaloneCli &cli)
     if (backend == 0)
     {
         mappingClient = new SimulatedTrickBackend();
+        mappingClient->SetDebug(true);
         mappingClient->Initialize(dynamicTypes, trickVariableMappingsJson);
     }
     else if (backend == 1)
