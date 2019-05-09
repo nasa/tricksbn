@@ -19,26 +19,46 @@ LIBRARY DEPENDENCY:
 
 #include <string>
 
+/* Forward-declare necessary classes instead including .h to avoid Qt ICG error */
+class QSbn;
+class TrickCcsdsMappingClient;
+class QCcsdsPacket;
+
+
 typedef struct
 {
     std::string qsbnJsonConfig;
     std::string tvmFileDir;
     std::string prototypeFileDir;
-
-    // TODO: just here for debugging purposes
     bool useSimulatedTrickBackend;
-
 } TelemetryServerConfig;
 
-typedef struct
-{
-    bool debugEnabled;
-    // TODO: Decide if anything else needs to be exposed
-    // or create a TelemetryServer class
-} TelemetryServerState;
 
-void InitTlmServer(TelemetryServerConfig *data);
-void RunTlmServer(TelemetryServerState *data);
-void ShutdownTlmServer(TelemetryServerState *data);
+class TelemetryServer
+{
+public:
+
+    TelemetryServer();
+    ~TelemetryServer();
+
+    void init(TelemetryServerConfig *config);
+
+    void run();
+
+    void shutdown();
+
+    bool debugEnabled;
+
+private:
+
+    static const int packetBufferSize = 1000;
+
+    QSbn *sbn; /**< ** Instance of QSbn */
+
+    TrickCcsdsMappingClient *mappingClient; /**< ** Instance of Trick client */
+
+    QCcsdsPacket *packetBuffer; /**< ** Container to store QSbn packets */
+
+};
 
 #endif /* __TRICK_TLM_SERVER_H__ */

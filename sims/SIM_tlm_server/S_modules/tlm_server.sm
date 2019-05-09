@@ -1,6 +1,6 @@
 /*
 PURPOSE:
-    (Tlm Server)
+    (Trick Telemetry Server)
 LIBRARY DEPENDENCY:
     (
         (tlm_server/src/tlm_server.cpp)
@@ -9,17 +9,25 @@ LIBRARY DEPENDENCY:
 
 ##include "tlm_server/include/tlm_server.hh"
 
-class TelemetryServer : public Trick::SimObject
+class TelemetryServerSimObject : public Trick::SimObject
 {
 public:
 
-    TelemetryServerConfig configData;
-    TelemetryServerState stateData;
+    TelemetryServer io;
 
-    TelemetryServer() 
+    TelemetryServerConfig configData;
+
+    TelemetryServerSimObject()
+        :io(), configData()
     {
-        ("initialization") InitTlmServer( &configData );
-        (0.01, "scheduled") RunTlmServer( &stateData );
-        ("shutdown") ShutdownTlmServer( &stateData );
+        ("initialization") io.init(&configData);
+
+        (0.01, "scheduled") io.run();
+
+        ("shutdown") io.shutdown();
+    }
+
+    void test() {
+        std::cout << "test" << std::endl;
     }
 };

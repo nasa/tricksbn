@@ -31,4 +31,4 @@ tlmServer.configData.qsbnJsonConfig = '''
 # a trick model producing/consuming data on SBN
 tlmServer.configData.useSimulatedTrickBackend = False
 
-tlmServer.stateData.debugEnabled = True 
+tlmServer.io.debugEnabled = True 

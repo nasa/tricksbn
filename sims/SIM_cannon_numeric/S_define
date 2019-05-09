@@ -32,7 +32,7 @@ CannonSimObject dyn ;
 
 IntegLoop dyn_integloop (0.01) dyn;
 
-TelemetryServer tlmServer;
+TelemetryServerSimObject tlmServer;
 
 void create_connections() {
     dyn_integloop.getIntegrator(Runge_Kutta_4, 5);

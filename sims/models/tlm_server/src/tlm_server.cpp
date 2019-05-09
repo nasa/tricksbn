@@ -1,5 +1,3 @@
-#include "tlm_server/include/tlm_server.hh"
-
 #include <iostream>
 
 #include <QDir>
@@ -7,6 +5,8 @@
 #include <QStringList>
 
 #include <QJsonObject>
+
+#include "tlm_server/include/tlm_server.hh"
 
 #include "protobetterdynamic.h"
 #include "qsbn.h"
@@ -16,27 +16,25 @@
 
 #include "trick/MemoryManager.hh"
 
-namespace {
-
-    Protobetter::PrototypeCollection *prototypes = nullptr;
-    Protobetter::DynamicTypeCollection *dynamicTypes = nullptr;
-    QSbn *sbn = nullptr;
-    TrickCcsdsMappingClient *mappingClient = nullptr;
-
-    const int packetBufferSize = 1000;
-    QCcsdsPacket *packetBuffer = nullptr;
-}
 
 extern Trick::MemoryManager *trick_MM;
 
-void InitTlmServer(TelemetryServerConfig *config)
+
+TelemetryServer::TelemetryServer()
+    :sbn(nullptr),
+    mappingClient(nullptr),
+    packetBuffer(nullptr),
+    debugEnabled(false)
+{
+}
+
+
+void TelemetryServer::init(TelemetryServerConfig *config)
 {
     // you can grab all inputs from the python input file and
     // do all your server initialization based on that here...
 
-    packetBuffer = new QCcsdsPacket[packetBufferSize];
-
-    prototypes = new Protobetter::PrototypeCollection;
+    Protobetter::PrototypeCollection *prototypes = new Protobetter::PrototypeCollection;
 
     std::cout << "Initializing Trick-SBN" << std::endl;
 
@@ -63,7 +61,7 @@ void InitTlmServer(TelemetryServerConfig *config)
         prototypes->LoadPrototypesFromPType(prototypeFile.absoluteFilePath());
     }
 
-    dynamicTypes = new Protobetter::DynamicTypeCollection;
+    Protobetter::DynamicTypeCollection *dynamicTypes = new Protobetter::DynamicTypeCollection;
     *dynamicTypes = Protobetter::DynamicTypeCollection::FromPrototypeCollection(*prototypes);
 
     if (dynamicTypes->Size() == 0)
@@ -142,6 +140,7 @@ void InitTlmServer(TelemetryServerConfig *config)
     }
 
     mappingClient->Initialize(*dynamicTypes, tvmObjects);
+    mappingClient->SetDebug(debugEnabled);
 
     // initialize and run qsbn
     sbn = new QSbn(QString(config->qsbnJsonConfig.c_str()));
@@ -182,10 +181,10 @@ void InitTlmServer(TelemetryServerConfig *config)
     }
 }
 
-void RunTlmServer(TelemetryServerState *data)
+
+void TelemetryServer::run()
 {
-    // this doesn't execute while sim is frozen
-    mappingClient->SetDebug(data->debugEnabled);
+    packetBuffer = new QCcsdsPacket[packetBufferSize];
 
     // map data from QSbn to trick memory
     int packetCount = sbn->ProcessIncomingMessages(packetBuffer, packetBufferSize);
@@ -217,11 +216,23 @@ void RunTlmServer(TelemetryServerState *data)
             std::cout << "TRICK_SBN ERROR calling QSbn::Send()..." << std::endl;
         }
     }
+
+    delete[] packetBuffer;
+    packetBuffer = nullptr;
 }
 
-void ShutdownTlmServer(TelemetryServerState *data)
+
+void TelemetryServer::shutdown()
 {
     // TODO: you should probably clean stuff up here...
     // but for practical purposes, we don't care what happens
     // once sim shutsdown
+}
+
+
+TelemetryServer::~TelemetryServer()
+{
+    delete sbn;
+    delete mappingClient;
+    delete packetBuffer;
 }
