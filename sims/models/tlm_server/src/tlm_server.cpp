@@ -36,6 +36,8 @@ void TelemetryServer::init(TelemetryServerConfig *config)
 
     Protobetter::PrototypeCollection *prototypes = new Protobetter::PrototypeCollection;
 
+    packetBuffer = new QCcsdsPacket[packetBufferSize];
+
     std::cout << "Initializing Trick-SBN" << std::endl;
 
     QDir tvmFileDir(QString(config->tvmFileDir.c_str()));
@@ -184,8 +186,6 @@ void TelemetryServer::init(TelemetryServerConfig *config)
 
 void TelemetryServer::run()
 {
-    packetBuffer = new QCcsdsPacket[packetBufferSize];
-
     // map data from QSbn to trick memory
     int packetCount = sbn->ProcessIncomingMessages(packetBuffer, packetBufferSize);
 
@@ -216,9 +216,6 @@ void TelemetryServer::run()
             std::cout << "TRICK_SBN ERROR calling QSbn::Send()..." << std::endl;
         }
     }
-
-    delete[] packetBuffer;
-    packetBuffer = nullptr;
 }
 
 
@@ -232,7 +229,8 @@ void TelemetryServer::shutdown()
 
 TelemetryServer::~TelemetryServer()
 {
+
     delete sbn;
     delete mappingClient;
-    delete packetBuffer;
+    delete[] packetBuffer;
 }

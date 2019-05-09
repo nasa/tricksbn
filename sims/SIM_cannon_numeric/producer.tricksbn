@@ -54,18 +54,6 @@
             ]
         },
         {
-            "typeName":"Vector_c",
-            "headerFileName":"protobetter_generated.h",
-
-            "members":
-            [
-                {"name":"id", "type":"uint8_t", "bits":4},
-                {"name":"x", "type":"float"},
-                {"name":"y", "type":"float"},
-                {"name":"z", "type":"float"}
-            ]
-        },
-        {
             "typeName":"LilBity_c",
             "headerFileName":"protobetter_generated.h",
 
