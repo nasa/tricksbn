@@ -5,8 +5,8 @@
 #include "trick_ccsds_utils.h"
 
 #ifdef TRICK_VER 
-#include "trick/MemoryManager.hh"
-extern Trick::MemoryManager *trick_MM;
+#include "trick/reference.h"
+#include "trick/memorymanager_c_intf.h"
 #endif
 
 TrickMemoryManagerClient::TrickMemoryManagerClient()
@@ -35,9 +35,7 @@ int TrickMemoryManagerClient::Initialize(Protobetter::DynamicTypeCollection &pro
 
         for (int j = 0; j < this->mappings[i].trickFieldNames.size(); ++j)
         {
-            REF2 *refAttributes = 
-                trick_MM->ref_attributes(
-                    this->mappings[i].trickFieldNames[j].toStdString().c_str());
+            REF2 *refAttributes = ref_attributes((char*)this->mappings[i].trickFieldNames[j].toStdString().c_str());
 
             if (!refAttributes)
             {

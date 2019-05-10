@@ -4,13 +4,6 @@ PURPOSE:
 LIBRARY DEPENDENCY:
     (
         (tlm_server/src/tlm_server.cpp)
-        (../../extern/protobetter/protobetter_dynamic_lib/src/protobetterdynamic.cpp)
-        (../../extern/ccsds_header_lib/src/cfe/cfe_sb_msg_id_util.c)
-        (../../extern/trick_sbn_lib/qsbn.cpp)
-        (../../extern/trick_sbn_lib/trick_ccsds_utils.cpp)
-        (../../extern/trick_sbn_lib/trick_ccsds_mapping.cpp)
-        (../../extern/trick_sbn_lib/trick_ccsds_sim_backend.cpp)
-        (../../extern/trick_sbn_lib/trick_ccsds_memory_manager.cpp)
     )
 */
 

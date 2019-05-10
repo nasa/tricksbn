@@ -57,3 +57,10 @@ unix {
     target.path = /usr/lib
     INSTALLS += target
 }
+
+isEmpty($$(TRICK_MM)) {
+    DEFINES += TRICK_VER
+    INCLUDEPATH += \
+        $$(TRICK_MM)/include
+    unix: LIBS += -L$$(TRICK_MM)/lib64 -ltrick_mm
+}
