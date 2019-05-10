@@ -11,7 +11,7 @@ LIBRARY DEPENDENCIES:
 #include "sim_objects/default_trick_sys.sm"
 ##include "cannon/gravity/include/cannon_numeric.h"
 
-#include "../SIM_tlm_server/S_modules/tlm_server.sm"
+#include "tlm_server.sm"
 
 class CannonSimObject : public Trick::SimObject {
 
