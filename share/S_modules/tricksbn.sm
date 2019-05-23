@@ -1,6 +1,6 @@
 /*
 PURPOSE:
-    (Trick Telemetry Server)
+    (TrickSBN provides interface for communication between Trick and CFS)
 LIBRARY DEPENDENCY:
     (
         (tlm_server/src/tlm_server.cpp)
@@ -9,7 +9,7 @@ LIBRARY DEPENDENCY:
 
 ##include "tlm_server/include/tlm_server.hh"
 
-class TelemetryServerSimObject : public Trick::SimObject
+class TrickSBNSimObject : public Trick::SimObject
 {
 public:
 
@@ -17,7 +17,7 @@ public:
 
     TelemetryServerConfig configData;
 
-    TelemetryServerSimObject()
+    TrickSBNSimObject()
         :io(), configData()
     {
         ("initialization") io.init(&configData);
@@ -27,7 +27,4 @@ public:
         ("shutdown") io.shutdown();
     }
 
-    void test() {
-        std::cout << "test" << std::endl;
-    }
 };

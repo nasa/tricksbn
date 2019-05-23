@@ -11,7 +11,7 @@ LIBRARY DEPENDENCIES:
 #include "sim_objects/default_trick_sys.sm"
 ##include "cannon/gravity/include/cannon_numeric.h"
 
-#include "tlm_server.sm"
+#include "S_modules/tricksbn.sm"
 
 class CannonSimObject : public Trick::SimObject {
 
@@ -32,7 +32,7 @@ CannonSimObject dyn ;
 
 IntegLoop dyn_integloop (0.01) dyn;
 
-TelemetryServerSimObject tlmServer;
+TrickSBNSimObject tricksbn;
 
 void create_connections() {
     dyn_integloop.getIntegrator(Runge_Kutta_4, 5);

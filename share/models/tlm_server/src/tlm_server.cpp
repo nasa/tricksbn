@@ -14,11 +14,6 @@
 #include "trick_ccsds_sim_backend.h"
 #include "trick_ccsds_memory_manager.h"
 
-#include "trick/MemoryManager.hh"
-
-
-extern Trick::MemoryManager *trick_MM;
-
 
 TelemetryServer::TelemetryServer()
     :sbn(nullptr),

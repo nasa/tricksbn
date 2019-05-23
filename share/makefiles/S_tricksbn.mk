@@ -12,7 +12,7 @@ TRICK_USER_LINK_LIBS += -L${QT_INSTALL_DIR}/lib
 TRICK_USER_LINK_LIBS += -lQt5Core -lQt5Network -lpthread -licui18n -licuuc -licudata
 
 # Library dependencies
-TRICK_SFLAGS += -I${TRICKSBN_HOME}/share/sim_objects
+TRICK_SFLAGS += -I${TRICKSBN_HOME}/share
 
 TRICK_CFLAGS += -I${TRICKSBN_HOME}/share/models
 

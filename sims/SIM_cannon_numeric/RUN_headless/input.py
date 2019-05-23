@@ -1,10 +1,10 @@
 #trick.real_time_enable()
 trick.frame_log_on()
 
-tlmServer.configData.tvmFileDir = "bittylicious_tvm_files"
-tlmServer.configData.prototypeFileDir = "bittylicious_ptype_files"
+tricksbn.configData.tvmFileDir = "bittylicious_tvm_files"
+tricksbn.configData.prototypeFileDir = "bittylicious_ptype_files"
 
-tlmServer.configData.qsbnJsonConfig = '''
+tricksbn.configData.qsbnJsonConfig = '''
 
 {
     "protocol":"stream",
@@ -29,6 +29,6 @@ tlmServer.configData.qsbnJsonConfig = '''
 
 # only set this to true if you want this to run as if it were just simulating
 # a trick model producing/consuming data on SBN
-tlmServer.configData.useSimulatedTrickBackend = False
+tricksbn.configData.useSimulatedTrickBackend = False
 
-tlmServer.io.debugEnabled = True 
+tricksbn.io.debugEnabled = True 
