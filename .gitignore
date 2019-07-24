@@ -7,7 +7,7 @@ trick/
 DP_Product/
 S_job_execution
 S_run_summary
-**/log_frame*
+**/log_*
 **/send_hs
 **/varserver_log
 **/S_main*

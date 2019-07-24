@@ -16,41 +16,75 @@
 
 
 TelemetryServer::TelemetryServer()
-    :sbn(nullptr),
+    :debugEnabled(false),
+    sbn(nullptr),
     mappingClient(nullptr),
-    packetBuffer(nullptr),
-    debugEnabled(false)
+    packetBuffer(nullptr)
 {
 }
 
 
-void TelemetryServer::init(TelemetryServerConfig *config)
+void TelemetryServer::init(TelemetryServerConfig &config)
 {
-    // you can grab all inputs from the python input file and
-    // do all your server initialization based on that here...
-
-    Protobetter::PrototypeCollection *prototypes = new Protobetter::PrototypeCollection;
-
-    packetBuffer = new QCcsdsPacket[packetBufferSize];
-
     std::cout << "Initializing Trick-SBN" << std::endl;
 
-    QDir tvmFileDir(QString(config->tvmFileDir.c_str()));
-    QDir prototypeFileDir(QString(config->prototypeFileDir.c_str()));
+    // Process prototypes
+    Protobetter::DynamicTypeCollection *dynamicTypes = new Protobetter::DynamicTypeCollection;
+    int resPtype = processPtypeFiles(config.prototypeFileDir, *dynamicTypes);
 
-    QStringList tvmFilePaths = tvmFileDir.entryList(QStringList() << "*.tvm", QDir::Files);
-    QStringList prototypeFilePaths = prototypeFileDir.entryList(QStringList() << "*.ptype", QDir::Files);
+    // Process tvm data
+    std::vector<std::string> tvmStrings;
+    int resTvm = processTvmFiles(config.tvmFileDir, tvmStrings);
 
-    if (tvmFilePaths.size() == 0)
+    // Convert to QJsonArray
+    QJsonArray tvmObjects;
+    for (size_t i = 0; i < tvmStrings.size(); ++i)
     {
-        std::cout << "TRICK_SBN ERROR: no tvm files found in tvm dir - " << tvmFileDir.absolutePath().toStdString() << std::endl;
+        QString qstr(tvmStrings.at(i).c_str());
+        QJsonDocument doc = QJsonDocument::fromJson(qstr.toUtf8());
+        tvmObjects.push_back(doc.object());
     }
-    else if (prototypeFilePaths.size() == 0)
+
+    // Initialize mapping client
+    if (config.useSimulatedTrickBackend)
+    {
+        mappingClient = new SimulatedTrickBackend();
+        std::cout << "Trick-SBN using simulated trick backend..." << std::endl; 
+    }
+    else
+    {
+        mappingClient = new TrickMemoryManagerClient();
+        std::cout << "Trick-SBN using Trick memory manager API..." << std::endl;
+    }
+
+    mappingClient->Initialize(*dynamicTypes, tvmObjects);
+    mappingClient->SetDebug(debugEnabled);
+
+    // Initialize and run qsbn
+    int resQsbn = initQsbn(config.qsbnJsonConfig);
+
+    if (resQsbn < 0 || resTvm < 0 || resPtype < 0) {
+        std::cout << "ERROR initializing TelemetryServer" << std::endl;
+    }
+}
+
+
+int TelemetryServer::processPtypeFiles(std::string &ptypeDir, Protobetter::DynamicTypeCollection &dynamicTypes)
+{
+    int result = 0;
+
+    QDir prototypeFileDir(QString(ptypeDir.c_str()));
+    QStringList prototypeFilePaths = prototypeFileDir.entryList(QStringList() << "*.ptype", QDir::Files);
+    if (prototypeFilePaths.size() == 0)
     {
         std::cout << "TRICK_SBN ERROR: no ptype files found in ptype dir - " << prototypeFileDir.absolutePath().toStdString() << std::endl;
+        result = -1;
     }
 
     // process prototype data & build dynamic types
+
+    Protobetter::PrototypeCollection *prototypes = new Protobetter::PrototypeCollection;
+    
     for (int i = 0; i < prototypeFilePaths.length(); ++i)
     {
         QFileInfo prototypeFile(prototypeFileDir, prototypeFilePaths.at(i));
@@ -58,19 +92,34 @@ void TelemetryServer::init(TelemetryServerConfig *config)
         prototypes->LoadPrototypesFromPType(prototypeFile.absoluteFilePath());
     }
 
-    Protobetter::DynamicTypeCollection *dynamicTypes = new Protobetter::DynamicTypeCollection;
-    *dynamicTypes = Protobetter::DynamicTypeCollection::FromPrototypeCollection(*prototypes);
+    dynamicTypes = Protobetter::DynamicTypeCollection::FromPrototypeCollection(*prototypes);
 
-    if (dynamicTypes->Size() == 0)
+    if (dynamicTypes.Size() == 0)
     {
         std::cout << "TRICK_SBN ERROR - no valid prototype definitions available!" << std::endl;
+        result = -1;
     }
     else
     {
-        std::cout << "TRICK_SBN: " << dynamicTypes->Size() << " prototypes available!" << std::endl; 
+        std::cout << "TRICK_SBN: " << dynamicTypes.Size() << " prototypes available!" << std::endl; 
     }
 
-    // process tvm data & initialize ccsds mapping client
+    return result;
+}
+
+
+int TelemetryServer::processTvmFiles(std::string &tvmDir, std::vector<std::string> &tvmStrings)
+{
+    int result = 0;
+
+    QDir tvmFileDir(QString(tvmDir.c_str()));
+    QStringList tvmFilePaths = tvmFileDir.entryList(QStringList() << "*.tvm", QDir::Files);
+    if (tvmFilePaths.size() == 0)
+    {
+        std::cout << "TRICK_SBN ERROR: no tvm files found in tvm dir - " << tvmFileDir.absolutePath().toStdString() << std::endl;
+        result = -1;
+    }
+
     QJsonArray tvmObjects;
 
     for (int i = 0; i < tvmFilePaths.length(); ++i)
@@ -83,6 +132,7 @@ void TelemetryServer::init(TelemetryServerConfig *config)
         if (!tvmFile.open(QIODevice::ReadOnly | QIODevice::Text))
         {
             std::cout << "ERROR: Failed to open tvm file: " << tvmFileInfo.absoluteFilePath().toStdString() << std::endl;
+            result = -1;
         }
 
         tvmFileJsonData = tvmFile.readAll();
@@ -105,23 +155,14 @@ void TelemetryServer::init(TelemetryServerConfig *config)
         else 
         {
             std::cout << "ERROR: tvm file contents are not valid json... " << tvmFileInfo.absoluteFilePath().toStdString() << std::endl;
+            result = -1;
         }
-    }
-
-    if (config->useSimulatedTrickBackend)
-    {
-        mappingClient = new SimulatedTrickBackend();
-        std::cout << "Trick-SBN using simulated trick backend..." << std::endl; 
-    }
-    else
-    {
-        mappingClient = new TrickMemoryManagerClient();
-        std::cout << "Trick-SBN using Trick memory manager API..." << std::endl;
     }
 
     if (tvmObjects.size() == 0)
     {
         std::cout << "TRICK_SBN ERROR: no valid tvm object definitions!" << std::endl;
+        result = -1;
     }
     else
     {
@@ -131,16 +172,23 @@ void TelemetryServer::init(TelemetryServerConfig *config)
         {
             auto tvmObject = tvmObjects.at(i).toObject();
             std::cout << "TrickVariableMapping: mid = " << tvmObject["messageId"].toString().toStdString() << std::endl;
+
+            QJsonDocument doc(tvmObject);
+            QString strdoc(doc.toJson(QJsonDocument::Compact));
+            tvmStrings.push_back(strdoc.toStdString());
         }
 
         std::cout << std::endl;
     }
 
-    mappingClient->Initialize(*dynamicTypes, tvmObjects);
-    mappingClient->SetDebug(debugEnabled);
+    return result;
+}
 
-    // initialize and run qsbn
-    sbn = new QSbn(QString(config->qsbnJsonConfig.c_str()));
+
+int TelemetryServer::initQsbn(std::string &config)
+{
+    packetBuffer = new QCcsdsPacket[packetBufferSize];
+    sbn = new QSbn(QString(config.c_str()));
 
     if (sbn->GetCurrentState() == QSbn::Initialized)
     {
@@ -159,7 +207,6 @@ void TelemetryServer::init(TelemetryServerConfig *config)
 
     if (sbn->GetCurrentProtocol() == QSbn::SBN_UDP)
     {
-    
         auto hostSubscriptions = mappingClient->GetInboundMids();
 
         int result = sbn->AddSubscriptions(hostSubscriptions);
@@ -176,6 +223,8 @@ void TelemetryServer::init(TelemetryServerConfig *config)
     {
         std::cout << "ERROR starting QSbn..." << std::endl;
     }
+
+    return result;
 }
 
 

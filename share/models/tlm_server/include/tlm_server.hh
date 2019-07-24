@@ -11,12 +11,17 @@ LIBRARY DEPENDENCY:
 #define __TRICK_TLM_SERVER_H__
 
 #include <string>
+#include <vector>
 
 /* Forward-declare necessary classes instead including .h to avoid Qt ICG error */
 class QSbn;
 class TrickCcsdsMappingClient;
 class QCcsdsPacket;
 
+namespace Protobetter
+{
+    class DynamicTypeCollection;
+}
 
 typedef struct
 {
@@ -34,7 +39,10 @@ public:
     TelemetryServer();
     ~TelemetryServer();
 
-    void init(TelemetryServerConfig *config);
+    void init(TelemetryServerConfig &config);
+    int processPtypeFiles(std::string &ptypeDir, Protobetter::DynamicTypeCollection &dynamicTypes);
+    int processTvmFiles(std::string &tvmFileDir, std::vector<std::string> &tvmStrings);
+    int initQsbn(std::string &config);
 
     void run();
 
@@ -54,4 +62,4 @@ private:
 
 };
 
-#endif /* __TRICK_TLM_SERVER_H__ */
+#endif /* _TRICK_TLM_SERVER_H_ */

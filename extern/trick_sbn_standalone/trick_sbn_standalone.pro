@@ -16,13 +16,12 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+        ../../share/models/tlm_server/src/tlm_server.cpp \
         main.cpp
 
 INCLUDEPATH += \
-    ../protobetter/protobetter_dynamic_lib/include
-
-RESOURCES += \
-    trick_sbn_data.qrc
+    ../protobetter/protobetter_dynamic_lib/include \
+    ../../share/models
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../trick_sbn_lib/release/ -ltrick_sbn_lib
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../trick_sbn_lib/debug/ -ltrick_sbn_lib

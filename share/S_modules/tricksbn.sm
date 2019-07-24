@@ -20,7 +20,7 @@ public:
     TrickSBNSimObject()
         :io(), configData()
     {
-        ("initialization") io.init(&configData);
+        ("initialization") io.init(configData);
 
         (0.01, "scheduled") io.run();
 

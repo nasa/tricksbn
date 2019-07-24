@@ -12,21 +12,8 @@
 #include "trick_ccsds_mapping.h"
 #include "trick_ccsds_sim_backend.h"
 
-class TvsIoStandaloneCli
-{
-public:
 
-    enum Mode
-    {
-        GenerateConfig,
-        SpawnPeer
-    };
-
-    TvsIoStandaloneCli::Mode mode;
-    QFileInfo configFileInfo;
-};
-
-TvsIoStandaloneCli ProcessCliInputs(QCoreApplication &app)
+QFileInfo ProcessCliInputs(QCoreApplication &app)
 {
     QCommandLineParser parser;
 
@@ -34,15 +21,7 @@ TvsIoStandaloneCli ProcessCliInputs(QCoreApplication &app)
     parser.addHelpOption();
 
     parser.addPositionalArgument("<filename>.tricksbn", QCoreApplication::translate("main", "TVS_IO configuration file."));
-
-    QCommandLineOption standaloneMode(QStringList() << "g" << "generate",
-                                      QCoreApplication::translate("main", "Generate sample config."));
-
-    parser.addOption(standaloneMode);
-
     parser.process(app);
-
-    TvsIoStandaloneCli cli;
 
     auto positionalArgs = parser.positionalArguments();
 
@@ -55,53 +34,13 @@ TvsIoStandaloneCli ProcessCliInputs(QCoreApplication &app)
 
     QString configFilePath = positionalArgs.at(0);
 
-    cli.configFileInfo = QFileInfo(configFilePath);
-
-    bool modeOptionSet = parser.isSet(standaloneMode);
-
-    if (modeOptionSet)
-    {
-        cli.mode = TvsIoStandaloneCli::GenerateConfig;
-    }
-    else
-    {
-        cli.mode = TvsIoStandaloneCli::SpawnPeer;
-    }
-
-    return cli;
+    return QFileInfo(configFilePath);
 }
 
-void GenerateTvsIoConfig(TvsIoStandaloneCli &cli)
-{
-    QFile configFile(":/data/default_config.tricksbn");
-
-    if (!configFile.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-        std::cout << "Failed to open default config file." << std::endl;
-    }
-
-    QString configJsonData = configFile.readAll();
-
-    QFile outFile(cli.configFileInfo.absoluteFilePath());
-
-    if (!outFile.open(QIODevice::WriteOnly | QIODevice::Text))
-    {
-        std::cout << "Failed to open output file: "
-                  << cli.configFileInfo
-                     .absoluteFilePath()
-                     .toStdString() << std::endl;
-    }
-
-    outFile.write(configJsonData.toUtf8());
-
-    std::cout << "Generated sample TrickSbn config at: "
-              << cli.configFileInfo.absoluteFilePath().toStdString() << std::endl;
-}
-
-void RunTvsIoStandalone(TvsIoStandaloneCli &cli)
+void RunTvsIoStandalone(QFileInfo &configFileInfo)
 {
     // load up default 'streaming' protocol config and verify it's valid
-    QString configFilePath(cli.configFileInfo.absoluteFilePath());
+    QString configFilePath(configFileInfo.absoluteFilePath());
 
     QString configJsonData;
     QFile configFile(configFilePath);
@@ -240,33 +179,15 @@ void RunTvsIoStandalone(TvsIoStandaloneCli &cli)
     }
 }
 
-void Run(TvsIoStandaloneCli &cli)
-{
-    if (cli.mode == TvsIoStandaloneCli::GenerateConfig)
-    {
-        std::cout << "Generating config at " << cli.configFileInfo.absoluteFilePath().toStdString() << std::endl;
-        GenerateTvsIoConfig(cli);
-    }
-    else if (cli.mode == TvsIoStandaloneCli::SpawnPeer)
-    {
-        std::cout << "Initializing TVS_IO Standalone..." << std::endl;
-        RunTvsIoStandalone(cli);
-    }
-    else
-    {
-        std::cout << "ERROR: unkown command line configuration..." << std::endl;
-    }
-}
-
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
 
-    std::cout << "TVS_IO Standalone" << std::endl;
+    QFileInfo info = ProcessCliInputs(app);
 
-    TvsIoStandaloneCli cli = ProcessCliInputs(app);
+    std::cout << "Initializing TVS_IO Standalone..." << std::endl;
 
-    Run(cli);
+    RunTvsIoStandalone(info);
 
     return 0;
 }
