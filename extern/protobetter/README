@@ -21,3 +21,10 @@ This library is a fully-featured c++ version of protobetter which expands upon t
 
 - To see the usage of the dynamic API, see ProtobetterTest::TestDynamicAPI() in protobetter_test.cpp
 - To see how to use this library w/ *.ptype definitions, see ProtobetterTest::TestBittylicousFromPtypeFile() in protobetter_test.cpp
+
+***************************************************************************
+************************** Dependencies ***********************************
+***************************************************************************
+- jsoncpp
+- libxml2 
+

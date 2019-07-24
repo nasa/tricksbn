@@ -23,16 +23,18 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 INCLUDEPATH += \
-        include
+        include \
+        /usr/include/jsoncpp \
+        /usr/include/libxml2
 
 SOURCES += \
         src/protobetterdynamic.cpp
 
 HEADERS += \
-        include/protobetterdynamic.h \
-        include/protobetter_dynamic_lib_global.h 
+        include/protobetterdynamic.h
 
 unix {
     target.path = /usr/lib
     INSTALLS += target
+    LIBS += -ljsoncpp -lxml2
 }

@@ -1,14 +1,15 @@
-#include <cstring>
 #include <bitset>
+#include <cstring>
+#include <algorithm>
+
+#include <byteswap.h>
+
+#include <fstream>
+#include <sstream>
 #include <iostream>
 
-#include <QtGlobal>
-
-#include <QtEndian>
-#include <QFile>
-#include <QTextStream>
-
-#include <QXmlStreamReader>
+#include <libxml/parser.h>
+#include <libxml/tree.h>
 
 #include <stdexcept>
 
@@ -16,35 +17,34 @@
 
 namespace
 {
-    Protobetter::Prototype BuildPrototypeFromJsonObject(QJsonObject object)
+    Protobetter::Prototype BuildPrototypeFromJsonObject(Json::Value &object)
     {
-        QString typeName = object["typeName"].toString();
-
+        std::string typeName = object["typeName"].asString();
+        
         Protobetter::Prototype prototype(typeName);
 
-        QJsonArray members = object["members"].toArray();
-
-        for (int i = 0; i < members.count(); ++i)
+        Json::Value members = object["members"];
+        for (Json::Value::iterator it = members.begin(); it != members.end(); ++it)
         {
-            QJsonObject member = members.at(i).toObject();
+            Json::Value member = *it;
 
             Protobetter::PrototypeMember ptypeMember;
-            ptypeMember.name = member["name"].toString();
-            ptypeMember.type = member["type"].toString();
+            ptypeMember.name = member["name"].asString();
+            ptypeMember.type = member["type"].asString();
 
-            if (member.contains("name"))
+            if (member.isMember("name"))
             {
-                ptypeMember.arrayLength = member["arraylen"].toInt();
+                ptypeMember.arrayLength = member["arraylen"].asInt();
             }
 
-            if (member.contains("bits"))
+            if (member.isMember("bits"))
             {
-                ptypeMember.bits = member["bits"].toInt();
+                ptypeMember.bits = member["bits"].asInt();
             }
-
+        
             prototype.members.push_back(ptypeMember);
         }
-
+        
         return prototype;
     }
 
@@ -75,9 +75,6 @@ namespace
         {
             magnitude = (~value + 1);
 
-            // I just want to freaking thank whoever thought to add the
-            // 'bitset' type to the standard template library in c++...
-            // somebody give that wonderful human being an award!
             std::bitset<64> bits(magnitude);
 
             for (std::size_t i = 0; i < bitfieldWidth; ++i)
@@ -129,14 +126,14 @@ Protobetter::FieldAccessor::FieldAccessor(ProtobetterFieldType type, std::size_t
 {
 }
 
-Protobetter::DynamicType::DynamicType(QString name, bool isRoot)
+Protobetter::DynamicType::DynamicType(const std::string& name, bool isRoot)
     : isRoot(isRoot), name(name)
 {
 }
 
-bool Protobetter::PrototypeCollection::HasType(QString typeName) const
+bool Protobetter::PrototypeCollection::HasType(const std::string& typeName) const
 {
-    for (int i = 0; i < this->rootTypes.size(); ++i)
+    for (unsigned int i = 0; i < this->rootTypes.size(); ++i)
     {
         if (this->rootTypes[i].name == typeName)
             return true;
@@ -145,9 +142,9 @@ bool Protobetter::PrototypeCollection::HasType(QString typeName) const
     return false;
 }
 
-bool Protobetter::Prototype::HasMember(QString memberName)
+bool Protobetter::Prototype::HasMember(const std::string& memberName)
 {
-    for (int i = 0; i < this->members.size(); ++i)
+    for (unsigned int i = 0; i < this->members.size(); ++i)
     {
         if (this->members[i].name == memberName)
         {
@@ -158,9 +155,9 @@ bool Protobetter::Prototype::HasMember(QString memberName)
     return false;
 }
 
-Protobetter::PrototypeMember Protobetter::Prototype::GetMember(QString memberName)
+Protobetter::PrototypeMember Protobetter::Prototype::GetMember(const std::string& memberName)
 {
-    for (int i = 0; i < this->members.size(); ++i)
+    for (unsigned int i = 0; i < this->members.size(); ++i)
     {
         if (this->members[i].name == memberName)
         {
@@ -168,13 +165,14 @@ Protobetter::PrototypeMember Protobetter::Prototype::GetMember(QString memberNam
         }
     }
 
-    QString msg = QString("Prototype::GetMember() ERROR: prototype has no member named ") + memberName;
-    throw std::runtime_error(msg.toStdString().c_str());
+    std::string msg = std::string("Prototype::GetMember() ERROR: prototype has no member named ") + memberName;
+
+    throw std::runtime_error(msg.c_str());
 }
 
-Protobetter::Prototype Protobetter::PrototypeCollection::GetType(QString typeName) const
+Protobetter::Prototype Protobetter::PrototypeCollection::GetType(const std::string& typeName) const
 {
-    for (int i = 0; i < this->rootTypes.size(); ++i)
+    for (unsigned int i = 0; i < this->rootTypes.size(); ++i)
     {
         if (this->rootTypes[i].name == typeName)
         {
@@ -182,18 +180,18 @@ Protobetter::Prototype Protobetter::PrototypeCollection::GetType(QString typeNam
         }
     }
 
-    QString msg = QString("PrototypeCollection::GetType() ERROR: collection has no type named ") + typeName;
-    throw std::runtime_error(msg.toStdString().c_str());
+    std::string msg = std::string("PrototypeCollection::GetType() ERROR: collection has no type named ") + typeName;
+    throw std::runtime_error(msg.c_str());
 }
 
 void Protobetter::PrototypeCollection::AddPrototype(const Prototype &prototype)
 {
-    this->rootTypes.append(prototype);
+    this->rootTypes.push_back(prototype);
 }
 
-bool Protobetter::DynamicTypeCollection::HasType(QString typeName)
+bool Protobetter::DynamicTypeCollection::HasType(const std::string& typeName)
 {
-    for (int i = 0; i < this->rootTypes.size(); ++i)
+    for (unsigned int i = 0; i < this->rootTypes.size(); ++i)
     {
         if (this->rootTypes[i]->Name() == typeName)
         {
@@ -219,9 +217,9 @@ Protobetter::DynamicType::Ptr Protobetter::DynamicTypeCollection::GetType(int in
     return this->rootTypes.at(index);
 }
 
-Protobetter::DynamicType::Ptr Protobetter::DynamicTypeCollection::GetType(QString typeName)
+Protobetter::DynamicType::Ptr Protobetter::DynamicTypeCollection::GetType(const std::string& typeName)
 {
-    for (int i = 0; i < this->rootTypes.size(); ++i)
+    for (unsigned int i = 0; i < this->rootTypes.size(); ++i)
     {
         if (this->rootTypes[i]->Name() == typeName)
         {
@@ -229,13 +227,13 @@ Protobetter::DynamicType::Ptr Protobetter::DynamicTypeCollection::GetType(QStrin
         }
     }
 
-    QString msg = QString("DynamicTypeCollection::GetType() ERROR: collection has no type named ") + typeName;
-    throw std::runtime_error(msg.toStdString().c_str());
+    std::string msg = std::string("DynamicTypeCollection::GetType() ERROR: collection has no type named ") + typeName;
+    throw std::runtime_error(msg.c_str());
 }
 
 void Protobetter::DynamicTypeCollection::AddDynamicType(const DynamicType::Ptr ptr)
 {
-    this->rootTypes.append(ptr);
+    this->rootTypes.push_back(ptr);
 }
 
 void Protobetter::DynamicTypeCollection::CreateDynamicTypeFromPrototypeRecursive(const PrototypeCollection &prototypes, DynamicTypeCollection &dynamicTypes, const Protobetter::Prototype &ptype)
@@ -249,7 +247,7 @@ void Protobetter::DynamicTypeCollection::CreateDynamicTypeFromPrototypeRecursive
 
     Protobetter::BitfieldCollection::Ptr currentBitfieldCollection = nullptr;
 
-    for (int i = 0; i < ptype.members.size(); ++i)
+    for (unsigned int i = 0; i < ptype.members.size(); ++i)
     {
         std::size_t memberSize = 0;
         bool isPrimitiveType = true;
@@ -327,8 +325,8 @@ void Protobetter::DynamicTypeCollection::CreateDynamicTypeFromPrototypeRecursive
                 else
                 {
                     // this is definitely an 'exceptional' error at this point - everything should've been sanitized before you started building the graph... if condition is met, go ahead and throw it.
-                    QString msg = QString("Protobetter::FieldCollection::CreateDynamicTypeFromPrototypeRecursive() ERROR: No prototype definition found for root type ") + ptype.members[i].type;
-                    throw std::runtime_error(msg.toStdString().c_str());
+                    std::string msg = std::string("Protobetter::FieldCollection::CreateDynamicTypeFromPrototypeRecursive() ERROR: No prototype definition found for root type ") + ptype.members[i].type;
+                    throw std::runtime_error(msg.c_str());
                 }
             }
 
@@ -337,7 +335,7 @@ void Protobetter::DynamicTypeCollection::CreateDynamicTypeFromPrototypeRecursive
 
         if (ptype.members[i].bits > 0) // it's a bitfield...
         {
-            if (currentBitfieldCollection.isNull())
+            if (!currentBitfieldCollection)
             {
                 currentBitfieldCollection = Protobetter::BitfieldCollection::CreateNewBitfieldCollection(memberSize);
             }
@@ -350,10 +348,9 @@ void Protobetter::DynamicTypeCollection::CreateDynamicTypeFromPrototypeRecursive
                 currentBitfieldCollection = Protobetter::BitfieldCollection::CreateNewBitfieldCollection(memberSize);
             }
 
-            bool isSigned = ptype.members[i].type.startsWith("i") ? true : false;
+            bool isSigned = ptype.members[i].type.rfind("i", 0) == 0;
 
             currentBitfieldCollection->AddField(ptype.members[i].name, ptype.members[i].bits, isSigned);
-
             if (i == ptype.members.size() - 1)
             {
                 currentBitfieldCollection->Finalize();
@@ -362,7 +359,7 @@ void Protobetter::DynamicTypeCollection::CreateDynamicTypeFromPrototypeRecursive
         }
         else if (ptype.members[i].arrayLength > 0 && ptype.members[i].type != "bytearray") // it's an array
         {
-            if (!currentBitfieldCollection.isNull())
+            if (currentBitfieldCollection)
             {
                 currentBitfieldCollection->Finalize();
                 newDynamicType->AddField(currentBitfieldCollection);
@@ -371,7 +368,10 @@ void Protobetter::DynamicTypeCollection::CreateDynamicTypeFromPrototypeRecursive
 
             for (int j = 0; j < ptype.members[i].arrayLength; ++j)
             {
-                QString memberName = ptype.members[i].name + QString("[") + QString::number(j) + QString("]");
+                
+                std::stringstream ss;
+                ss << ptype.members[i].name << "[" << j << "]";
+                std::string memberName = ss.str(); 
 
                 if (isPrimitiveType)
                 {
@@ -379,14 +379,14 @@ void Protobetter::DynamicTypeCollection::CreateDynamicTypeFromPrototypeRecursive
                 }
                 else
                 {
-                    auto rootType = qSharedPointerCast<Protobetter::FieldCollection>(dynamicTypes.GetType(ptype.members[i].type));
+                    auto rootType = std::static_pointer_cast<Protobetter::FieldCollection>(dynamicTypes.GetType(ptype.members[i].type));
                     newDynamicType->AddField(Protobetter::FieldCollection::CreateFieldFromRootType(memberName, rootType, true));
                 }
             }
         }
         else // it's just a normal field
         {
-            if (!currentBitfieldCollection.isNull())
+            if (currentBitfieldCollection)
             {
                 currentBitfieldCollection->Finalize();
                 newDynamicType->AddField(currentBitfieldCollection);
@@ -399,7 +399,7 @@ void Protobetter::DynamicTypeCollection::CreateDynamicTypeFromPrototypeRecursive
             }
             else
             {
-                auto rootType = qSharedPointerCast<Protobetter::FieldCollection>(dynamicTypes.GetType(ptype.members[i].type));
+                auto rootType = std::static_pointer_cast<Protobetter::FieldCollection>(dynamicTypes.GetType(ptype.members[i].type));
                 newDynamicType->AddField(Protobetter::FieldCollection::CreateFieldFromRootType(ptype.members[i].name, rootType, true));
             }
         }
@@ -410,13 +410,13 @@ void Protobetter::DynamicTypeCollection::CreateDynamicTypeFromPrototypeRecursive
     dynamicTypes.AddDynamicType(newDynamicType);
 }
 
-QStringList Protobetter::DynamicTypeCollection::GetRootTypeNames()
+std::vector<std::string> Protobetter::DynamicTypeCollection::GetRootTypeNames()
 {
-    QStringList names;
+    std::vector<std::string> names;
 
-    for (int i = 0; i < rootTypes.size(); ++i)
+    for (unsigned int i = 0; i < rootTypes.size(); ++i)
     {
-        names << rootTypes[i]->Name();
+        names.push_back(rootTypes[i]->Name());
     }
 
     return names;
@@ -435,7 +435,7 @@ Protobetter::DynamicTypeCollection Protobetter::DynamicTypeCollection::FromProto
     return dynamicTypes;
 }
 
-QString Protobetter::DynamicType::Name()
+std::string Protobetter::DynamicType::Name()
 {
     return this->name;
 }
@@ -445,8 +445,8 @@ bool Protobetter::DynamicType::IsRoot()
     return this->isRoot;
 }
 
-Protobetter::FieldCollection::FieldCollection(QString name, bool isRoot)
-    : DynamicType(name, isRoot), isComplete(false), memberAccessors(new QMap<QString, Protobetter::FieldAccessor>())
+Protobetter::FieldCollection::FieldCollection(const std::string& name, bool isRoot)
+    : DynamicType(name, isRoot), isComplete(false), memberAccessors(new std::map<std::string, Protobetter::FieldAccessor>())
 {
 }
 
@@ -455,29 +455,26 @@ bool Protobetter::FieldCollection::IsComplete()
     return this->isComplete;
 }
 
-QSharedPointer<QMap<QString, Protobetter::FieldAccessor> > Protobetter::FieldCollection::GetMemberMap()
+std::shared_ptr<std::map<std::string, Protobetter::FieldAccessor> > Protobetter::FieldCollection::GetMemberMap()
 {
     return this->memberAccessors;
 }
 
-Protobetter::ProtobetterFieldType Protobetter::FieldCollection::GetFieldType(QString name)
+Protobetter::ProtobetterFieldType Protobetter::FieldCollection::GetFieldType(const std::string& name)
 {
     if (!this->isComplete)
     {
         throw std::runtime_error("Protobetter::FieldCollection::GetFieldType ERROR: can't access field type info until type is complete!");
     }
 
-#ifndef QT_NO_DEBUG
-
-    if (!this->memberAccessors->contains(name))
+    std::map<std::string, FieldAccessor>::iterator it = this->memberAccessors->find(name);
+    if (it == this->memberAccessors->end())
     {
-        QString errMsg = QString("No member named ") + name;
-        throw std::invalid_argument(errMsg.toStdString().c_str());
+        std::string errMsg = std::string("No member named ") + name;
+        throw std::invalid_argument(errMsg.c_str());
     }
 
-#endif
-
-    return this->memberAccessors->value(name).type;
+    return this->memberAccessors->at(name).type;
 }
 
 void Protobetter::FieldCollection::Finalize()
@@ -491,33 +488,35 @@ void Protobetter::FieldCollection::Finalize()
             Protobetter::FieldAccessor accessor(ProtobetterFieldType::Object, this->Size());
             accessor.byteOffset = 0;
 
-            this->memberAccessors->insert(this->name, accessor);
+            this->memberAccessors->insert(std::pair<std::string, FieldAccessor>(this->name, accessor));
         }
 
-        for (int i = 0; i < this->fields.size(); ++i)
+        for (unsigned int i = 0; i < this->fields.size(); ++i)
         {
             auto currentMemberAccessors = this->fields[i]->GetMemberMap();
 
-            for (auto iter = currentMemberAccessors->constBegin();
-                 iter != currentMemberAccessors->constEnd();
+            for (auto iter = currentMemberAccessors->begin();
+                 iter != currentMemberAccessors->end();
                  iter++)
             {
-                QString fieldPath;
+                std::string fieldPath;
 
                 if (this->isRoot)
                 {
-                    fieldPath = iter.key();
+                    fieldPath = iter->first;
                 }
                 else
                 {
-                    fieldPath = this->name + QString(".") + iter.key();
+                    std::stringstream ss;
+                    ss << this->name << "." << iter->first;
+                    fieldPath = ss.str();
                 }
 
-                Protobetter::FieldAccessor accessor = iter.value();
+                Protobetter::FieldAccessor accessor = iter->second;
 
                 accessor.byteOffset += currentOffset;
 
-                this->memberAccessors->insert(fieldPath, accessor);
+                this->memberAccessors->insert(std::pair<std::string, FieldAccessor>(fieldPath, accessor));
             }
 
             currentOffset += this->fields[i]->Size();
@@ -536,7 +535,7 @@ std::size_t Protobetter::FieldCollection::Size()
 {
     std::size_t size = 0;
 
-    for (int i = 0; i < this->fields.size(); ++i)
+    for (unsigned int i = 0; i < this->fields.size(); ++i)
     {
         size += this->fields[i]->Size();
     }
@@ -549,13 +548,13 @@ Protobetter::BitfieldCollection::Bitfield::Bitfield()
 {
 }
 
-Protobetter::BitfieldCollection::Bitfield::Bitfield(QString name, std::size_t bitOffset, std::size_t length, bool isSigned)
+Protobetter::BitfieldCollection::Bitfield::Bitfield(const std::string& name, std::size_t bitOffset, std::size_t length, bool isSigned)
     : name(name), bitOffset(bitOffset), length(length), isSigned(isSigned)
 {
 }
 
 Protobetter::BitfieldCollection::BitfieldCollection(std::size_t size)
-    : DynamicType("", false), size(size), isComplete(false), memberAccessors(new QMap<QString, FieldAccessor>())
+    : DynamicType("", false), size(size), isComplete(false), memberAccessors(new std::map<std::string, FieldAccessor>())
 {
 }
 
@@ -564,7 +563,7 @@ bool Protobetter::BitfieldCollection::IsComplete()
     return this->isComplete;
 }
 
-QSharedPointer<QMap<QString, Protobetter::FieldAccessor> > Protobetter::BitfieldCollection::GetMemberMap()
+std::shared_ptr<std::map<std::string, Protobetter::FieldAccessor> > Protobetter::BitfieldCollection::GetMemberMap()
 {
     return this->memberAccessors;
 }
@@ -573,7 +572,7 @@ void Protobetter::BitfieldCollection::Finalize()
 {
     if (!this->isComplete)
     {
-        for (int i = 0; i < this->bitfields.size(); ++i)
+        for (unsigned int i = 0; i < this->bitfields.size(); ++i)
         {
             ProtobetterFieldType type = this->bitfields[i].isSigned ? ProtobetterFieldType::SignedBitfield : ProtobetterFieldType::UnsignedBitfield;
 
@@ -584,14 +583,14 @@ void Protobetter::BitfieldCollection::Finalize()
 
             accessor.packingMask = CalculatePackingMask(this->bitfields[i].bitOffset, this->bitfields[i].length);
 
-            this->memberAccessors->insert(this->bitfields[i].name, accessor);
+            this->memberAccessors->insert(std::pair<std::string, FieldAccessor>(this->bitfields[i].name, accessor));
         }
 
         this->isComplete = true;
     }
 }
 
-Protobetter::ProtobetterFieldType Protobetter::BitfieldCollection::GetFieldType(QString UNUSED(name))
+Protobetter::ProtobetterFieldType Protobetter::BitfieldCollection::GetFieldType(const std::string&)
 {
     if (!this->isComplete)
     {
@@ -602,23 +601,23 @@ Protobetter::ProtobetterFieldType Protobetter::BitfieldCollection::GetFieldType(
     return Protobetter::SignedBitfield;
 }
 
-QSharedPointer<Protobetter::BitfieldCollection> Protobetter::BitfieldCollection::CreateNewBitfieldCollection(std::size_t size)
+std::shared_ptr<Protobetter::BitfieldCollection> Protobetter::BitfieldCollection::CreateNewBitfieldCollection(std::size_t size)
 {
     if (!(size == 1 || size == 2 || size == 4 || size == 8))
     {
         throw std::invalid_argument("Protobetter::BitfieldCollection can only be created with a size of 1, 2, 4, or 8 bytes!");
     }
 
-    return QSharedPointer<Protobetter::BitfieldCollection>(new Protobetter::BitfieldCollection(size));
+    return std::shared_ptr<Protobetter::BitfieldCollection>(new Protobetter::BitfieldCollection(size));
 }
 
 std::size_t Protobetter::BitfieldCollection::BitsUsed()
 {
     std::size_t bitsUsed = 0;
 
-    for (int i = 0; i < this->bitfields.size(); ++i)
+    for (unsigned int i = 0; i < this->bitfields.size(); ++i)
     {
-        bitsUsed += this->bitfields.value(i).length;
+        bitsUsed += this->bitfields.at(i).length;
     }
 
     return bitsUsed;
@@ -629,18 +628,18 @@ std::size_t Protobetter::BitfieldCollection::BitsAvailable()
     return (this->Size() * 8) - this->BitsUsed();
 }
 
-void Protobetter::BitfieldCollection::AddField(QString name, std::size_t width, bool isSigned)
+void Protobetter::BitfieldCollection::AddField(const std::string& name, std::size_t width, bool isSigned)
 {
     if (this->BitsAvailable() < width)
     {
-        throw std::invalid_argument(std::string("Protobetter::BitfieldCollection doesn't have space for field: ") + name.toStdString());
+        throw std::invalid_argument(std::string("Protobetter::BitfieldCollection doesn't have space for field: ") + name);
     }
     else if (this->isComplete)
     {
         throw std::runtime_error("Protobetter::BitfieldCollection::AddField() can not be called once it has been finalized!");
     }
 
-    for (int i = 0; i < this->bitfields.size(); ++i)
+    for (unsigned int i = 0; i < this->bitfields.size(); ++i)
     {
         if (this->bitfields[i].name == name)
         {
@@ -648,7 +647,7 @@ void Protobetter::BitfieldCollection::AddField(QString name, std::size_t width, 
         }
     }
 
-    this->bitfields.append(Bitfield(name, this->BitsUsed(), width, isSigned));
+    this->bitfields.push_back(Bitfield(name, this->BitsUsed(), width, isSigned));
 }
 
 std::size_t Protobetter::BitfieldCollection::Size()
@@ -661,7 +660,7 @@ std::size_t Protobetter::BitfieldCollection::MemberCount()
     return this->bitfields.size();
 }
 
-Protobetter::Prototype::Prototype(QString name)
+Protobetter::Prototype::Prototype(const std::string& name)
     : name(name)
 {
 
@@ -671,25 +670,25 @@ Protobetter::Prototype::Prototype()
 {
 }
 
-QSharedPointer<Protobetter::PrimitiveField> Protobetter::PrimitiveField::CreateNewPrimitiveField(QString name, ProtobetterFieldType type, std::size_t size)
+std::shared_ptr<Protobetter::PrimitiveField> Protobetter::PrimitiveField::CreateNewPrimitiveField(const std::string& name, ProtobetterFieldType type, std::size_t size)
 {
     if (size == 0)
     {
         throw std::invalid_argument("Cannot create a Protobetter::PrimitiveField w/ size = 0!");
     }
 
-    return QSharedPointer<Protobetter::PrimitiveField>(new Protobetter::PrimitiveField(name, type, size));
+    return std::shared_ptr<Protobetter::PrimitiveField>(new Protobetter::PrimitiveField(name, type, size));
 }
 
-Protobetter::ProtobetterFieldType Protobetter::PrimitiveField::GetFieldType(QString UNUSED(name))
+Protobetter::ProtobetterFieldType Protobetter::PrimitiveField::GetFieldType(const std::string&)
 {
     return this->type;
 }
 
-Protobetter::PrimitiveField::PrimitiveField(QString name, ProtobetterFieldType type, std::size_t size)
-    : DynamicType(name, false), type(type), size(size), memberAccessors(new QMap<QString, Protobetter::FieldAccessor>())
+Protobetter::PrimitiveField::PrimitiveField(const std::string& name, ProtobetterFieldType type, std::size_t size)
+    : DynamicType(name, false), type(type), size(size), memberAccessors(new std::map<std::string, Protobetter::FieldAccessor>())
 {
-    this->memberAccessors->insert(this->name, Protobetter::FieldAccessor(type, this->size));
+    this->memberAccessors->insert(std::pair<std::string, FieldAccessor>(this->name, Protobetter::FieldAccessor(type, this->size)));
 }
 
 std::size_t Protobetter::PrimitiveField::Size()
@@ -702,7 +701,7 @@ bool Protobetter::PrimitiveField::IsComplete()
     return true; // a primitive field is always a complete type
 }
 
-QSharedPointer<QMap<QString, Protobetter::FieldAccessor> > Protobetter::PrimitiveField::GetMemberMap()
+std::shared_ptr<std::map<std::string, Protobetter::FieldAccessor> > Protobetter::PrimitiveField::GetMemberMap()
 {
     return this->memberAccessors;
 }
@@ -712,12 +711,12 @@ std::size_t Protobetter::PrimitiveField::MemberCount()
     return 1;
 }
 
-QSharedPointer<Protobetter::FieldCollection> Protobetter::FieldCollection::CreateNewRootType(QString typeName)
+std::shared_ptr<Protobetter::FieldCollection> Protobetter::FieldCollection::CreateNewRootType(const std::string& typeName)
 {
-    return QSharedPointer<Protobetter::FieldCollection>(new Protobetter::FieldCollection(typeName, true));
+    return std::shared_ptr<Protobetter::FieldCollection>(new Protobetter::FieldCollection(typeName, true));
 }
 
-QSharedPointer<Protobetter::FieldCollection> Protobetter::FieldCollection::CreateFieldFromRootType(QString fieldName, QSharedPointer<Protobetter::FieldCollection> root, bool finalize)
+std::shared_ptr<Protobetter::FieldCollection> Protobetter::FieldCollection::CreateFieldFromRootType(const std::string& fieldName, std::shared_ptr<Protobetter::FieldCollection> root, bool finalize)
 {
     if (!(root->IsRoot()))
     {
@@ -736,10 +735,10 @@ QSharedPointer<Protobetter::FieldCollection> Protobetter::FieldCollection::Creat
         newField->Finalize();
     }
 
-    return QSharedPointer<Protobetter::FieldCollection>(newField);
+    return std::shared_ptr<Protobetter::FieldCollection>(newField);
 }
 
-void Protobetter::FieldCollection::AddField(QSharedPointer<Protobetter::DynamicType> field)
+void Protobetter::FieldCollection::AddField(std::shared_ptr<Protobetter::DynamicType> field)
 {
     if (field->IsRoot())
     {
@@ -753,31 +752,51 @@ void Protobetter::FieldCollection::AddField(QSharedPointer<Protobetter::DynamicT
     {
         throw std::runtime_error("Protobetter::FieldCollection can not be modified once it has been finalized!");
     }
-    else if (this->memberAccessors->contains(field->Name()))
+    else
     {
-        QString msg = QString("Protobetter::FieldCollection already has a member named") + field->Name();
-        throw std::invalid_argument(msg.toStdString().c_str());
+        std::map<std::string, FieldAccessor>::iterator it = this->memberAccessors->begin();
+        bool found = false;
+        while (it != this->memberAccessors->end())
+        {
+            if (it->first == field->Name())
+            {
+                found = true;
+            }
+        }
+        if (found)
+        {
+            std::string msg = std::string("Protobetter::FieldCollection already has a member named") + field->Name();
+            throw std::invalid_argument(msg.c_str());
+        }
     }
 
-    this->fields.append(field);
+    this->fields.push_back(field);
 }
 
-QSharedPointer<Protobetter::DynamicType> Protobetter::FieldCollection::GetField(int fieldIndex)
+std::shared_ptr<Protobetter::DynamicType> Protobetter::FieldCollection::GetField(int fieldIndex)
 {
-    if (fieldIndex < 0 || fieldIndex > this->fields.size() - 1)
+    if (fieldIndex < 0 || fieldIndex > static_cast<int>(this->fields.size()) - 1)
     {
         throw std::invalid_argument("Protobetter::FieldCollection::GetField() called with out-of-range fieldIndex!");
     }
 
-    return this->fields.value(fieldIndex);
+    return this->fields.at(fieldIndex);
 }
 
-Protobetter::DynamicObject::DynamicObject(QSharedPointer<Protobetter::DynamicType> type)
-    : ownsData(true), typeName(type->Name()), memberAccessors(type->GetMemberMap())
+Protobetter::DynamicObject::DynamicObject(std::shared_ptr<Protobetter::DynamicType> type)
+    : isLittleEndian(false), ownsData(true), typeName(type->Name()), memberAccessors(type->GetMemberMap())
 {
     if (!type->IsComplete())
     {
         throw std::runtime_error("Protobetter::DynamicObject can not be instantiated from an incomplete type!");
+    }
+
+    // Check endianness
+    short int number = 0x1;
+    char *numPtr = (char*)&number;
+    if (numPtr[0] == 1)
+    {
+        this->isLittleEndian = true;
     }
 
     std::size_t size = type->Size();
@@ -787,15 +806,22 @@ Protobetter::DynamicObject::DynamicObject(QSharedPointer<Protobetter::DynamicTyp
     this->size = size;
 }
 
-Protobetter::DynamicObject::DynamicObject(QSharedPointer<Protobetter::DynamicType> type, char *_data)
-    : ownsData(false), data(_data), size(type->Size()), typeName(type->Name()), memberAccessors(type->GetMemberMap())
+Protobetter::DynamicObject::DynamicObject(std::shared_ptr<Protobetter::DynamicType> type, char *_data)
+    : isLittleEndian(false), ownsData(false), data(_data), size(type->Size()), typeName(type->Name()), memberAccessors(type->GetMemberMap())
 {
+    short int number = 0x1;
+    char *numPtr = (char*)&number;
+    if (numPtr[0] == 1)
+    {
+        this->isLittleEndian = true;
+    }
 }
 
 Protobetter::DynamicObject::DynamicObject(const DynamicObject &other)
 {
     this->memberAccessors = other.memberAccessors;
     this->size = size;
+    this->isLittleEndian = other.isLittleEndian;
     this->ownsData = false;
     this->data = other.data;
     this->typeName = other.typeName;
@@ -808,6 +834,7 @@ Protobetter::DynamicObject& Protobetter::DynamicObject::operator=(const DynamicO
         this->memberAccessors = other.memberAccessors;
         this->typeName = other.typeName;
         this->size = size;
+        this->isLittleEndian = other.isLittleEndian;
         this->ownsData = false;
         this->data = other.data;
     }
@@ -836,19 +863,16 @@ uint8_t Protobetter::DynamicObject::GetUInt8(const Protobetter::FieldAccessor &a
     return value;
 }
 
-uint8_t Protobetter::DynamicObject::GetUInt8(QString memberName)
+uint8_t Protobetter::DynamicObject::GetUInt8(const std::string& memberName)
 {
-#ifndef QT_NO_DEBUG
-
-    if (!this->memberAccessors->contains(memberName))
+    std::map<std::string, FieldAccessor>::iterator it = this->memberAccessors->find(memberName);
+    if (it == this->memberAccessors->end())
     {
-        QString errMsg = QString("No member named ") + memberName;
-        throw std::invalid_argument(errMsg.toStdString().c_str());
+        std::string errMsg = std::string("No member named ") + memberName;
+        throw std::invalid_argument(errMsg.c_str());
     }
 
-#endif
-
-    Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
+    Protobetter::FieldAccessor accessor = this->memberAccessors->at(memberName);
 
     return this->GetUInt8(accessor);
 }
@@ -864,201 +888,224 @@ int8_t Protobetter::DynamicObject::GetInt8(const Protobetter::FieldAccessor &acc
     return value;
 }
 
-int8_t Protobetter::DynamicObject::GetInt8(QString memberName)
+int8_t Protobetter::DynamicObject::GetInt8(const std::string& memberName)
 {
-#ifndef QT_NO_DEBUG
-
-    if (!this->memberAccessors->contains(memberName))
+    std::map<std::string, FieldAccessor>::iterator it = this->memberAccessors->find(memberName);
+    if (it == this->memberAccessors->end())
     {
-        QString errMsg = QString("No member named ") + memberName;
-        throw std::invalid_argument(errMsg.toStdString().c_str());
+        std::string errMsg = std::string("No member named ") + memberName;
+        throw std::invalid_argument(errMsg.c_str());
     }
 
-#endif
-
-    Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
+    Protobetter::FieldAccessor accessor = this->memberAccessors->at(memberName);
 
     return this->GetInt8(accessor);
 }
 
 uint16_t Protobetter::DynamicObject::GetUInt16(const Protobetter::FieldAccessor &accessor)
 {
-    return qFromBigEndian<quint16>(this->data + accessor.byteOffset);
-}
-
-uint16_t Protobetter::DynamicObject::GetUInt16(QString memberName)
-{
-#ifndef QT_NO_DEBUG
-
-    if (!this->memberAccessors->contains(memberName))
+    uint16_t value;
+    memcpy(&value, this->data + accessor.byteOffset, 2);
+    
+    if (this->isLittleEndian)
     {
-        QString errMsg = QString("No member named ") + memberName;
-        throw std::invalid_argument(errMsg.toStdString().c_str());
+        value = bswap_16(value);        
     }
 
-#endif
+    return value;
+}
 
-    return qFromBigEndian<quint16>(this->data + this->memberAccessors->value(memberName).byteOffset);
+uint16_t Protobetter::DynamicObject::GetUInt16(const std::string& memberName)
+{
+    std::map<std::string, FieldAccessor>::iterator it = this->memberAccessors->find(memberName);
+    if (it == this->memberAccessors->end())
+    {
+        std::string errMsg = std::string("No member named ") + memberName;
+        throw std::invalid_argument(errMsg.c_str());
+    }
+
+    return GetUInt16(this->memberAccessors->at(memberName));    
 }
 
 int16_t Protobetter::DynamicObject::GetInt16(const Protobetter::FieldAccessor &accessor)
 {
-    return qFromBigEndian<qint16>(this->data + accessor.byteOffset);
-}
+    int16_t value;
+    memcpy(&value, this->data + accessor.byteOffset, 2);
 
-int16_t Protobetter::DynamicObject::GetInt16(QString memberName)
-{
-#ifndef QT_NO_DEBUG
-
-    if (!this->memberAccessors->contains(memberName))
+    if (this->isLittleEndian)
     {
-        QString errMsg = QString("No member named ") + memberName;
-        throw std::invalid_argument(errMsg.toStdString().c_str());
+        value = bswap_16(value);
     }
 
-#endif
+    return value;
+}
 
-    return qFromBigEndian<qint16>(this->data + this->memberAccessors->value(memberName).byteOffset);
+int16_t Protobetter::DynamicObject::GetInt16(const std::string& memberName)
+{
+    std::map<std::string, FieldAccessor>::iterator it = this->memberAccessors->find(memberName);
+    if (it == this->memberAccessors->end())
+    {
+        std::string errMsg = std::string("No member named ") + memberName;
+        throw std::invalid_argument(errMsg.c_str());
+    }
+
+    return GetInt16(this->memberAccessors->at(memberName));
 }
 
 uint32_t Protobetter::DynamicObject::GetUInt32(const Protobetter::FieldAccessor &accessor)
 {
-    return qFromBigEndian<quint32>(this->data + accessor.byteOffset);
-}
+    uint32_t value;
+    memcpy(&value, this->data + accessor.byteOffset, 4);
 
-uint32_t Protobetter::DynamicObject::GetUInt32(QString memberName)
-{
-#ifndef QT_NO_DEBUG
-
-    if (!this->memberAccessors->contains(memberName))
+    if (this->isLittleEndian)
     {
-        QString errMsg = QString("No member named ") + memberName;
-        throw std::invalid_argument(errMsg.toStdString().c_str());
+        value = bswap_32(value);
     }
 
-#endif
+    return value;
+}
 
-    return qFromBigEndian<quint32>(this->data + this->memberAccessors->value(memberName).byteOffset);
+uint32_t Protobetter::DynamicObject::GetUInt32(const std::string& memberName)
+{
+    std::map<std::string, FieldAccessor>::iterator it = this->memberAccessors->find(memberName);
+    if (it == this->memberAccessors->end())
+    {
+        std::string errMsg = std::string("No member named ") + memberName;
+        throw std::invalid_argument(errMsg.c_str());
+    }
+
+    return GetUInt32(this->memberAccessors->at(memberName));
 }
 
 int32_t Protobetter::DynamicObject::GetInt32(const Protobetter::FieldAccessor &accessor)
 {
-    return qFromBigEndian<qint32>(this->data + accessor.byteOffset);
-}
+    int32_t value;
+    memcpy(&value, this->data + accessor.byteOffset, 4);
 
-int32_t Protobetter::DynamicObject::GetInt32(QString memberName)
-{
-#ifndef QT_NO_DEBUG
-
-    if (!this->memberAccessors->contains(memberName))
+    if (this->isLittleEndian)
     {
-        QString errMsg = QString("No member named ") + memberName;
-        throw std::invalid_argument(errMsg.toStdString().c_str());
+        value = bswap_32(value);
     }
 
-#endif
+    return value;    
+}
 
-    return qFromBigEndian<qint32>(this->data + this->memberAccessors->value(memberName).byteOffset);
+int32_t Protobetter::DynamicObject::GetInt32(const std::string& memberName)
+{
+    std::map<std::string, FieldAccessor>::iterator it = this->memberAccessors->find(memberName);
+    if (it == this->memberAccessors->end())
+    {
+        std::string errMsg = std::string("No member named ") + memberName;
+        throw std::invalid_argument(errMsg.c_str());
+    }
+
+    return GetInt32(this->memberAccessors->at(memberName));
 }
 
 uint64_t Protobetter::DynamicObject::GetUInt64(const Protobetter::FieldAccessor &accessor)
 {
-    return qFromBigEndian<quint64>(this->data + accessor.byteOffset);
+    uint64_t value;
+    memcpy(&value, this->data + accessor.byteOffset, 8);
+
+    if (this->isLittleEndian)
+    {
+        value = bswap_64(value);
+    }
+ 
+    return value;
 }
 
-uint64_t Protobetter::DynamicObject::GetUInt64(QString memberName)
+uint64_t Protobetter::DynamicObject::GetUInt64(const std::string& memberName)
 {
-#ifndef QT_NO_DEBUG
-
-    if (!this->memberAccessors->contains(memberName))
+    std::map<std::string, FieldAccessor>::iterator it = this->memberAccessors->find(memberName);
+    if (it == this->memberAccessors->end())
     {
-        QString errMsg = QString("No member named ") + memberName;
-        throw std::invalid_argument(errMsg.toStdString().c_str());
+        std::string errMsg = std::string("No member named ") + memberName;
+        throw std::invalid_argument(errMsg.c_str());
     }
 
-#endif
-
-    return qFromBigEndian<quint64>(this->data + this->memberAccessors->value(memberName).byteOffset);
+    return GetUInt64(this->memberAccessors->at(memberName));
 }
 
 int64_t Protobetter::DynamicObject::GetInt64(const Protobetter::FieldAccessor &accessor)
 {
-    return qFromBigEndian<qint64>(this->data + accessor.byteOffset);
-}
+    int64_t value;
+    memcpy(&value, this->data + accessor.byteOffset, 8);
 
-int64_t Protobetter::DynamicObject::GetInt64(QString memberName)
-{
-#ifndef QT_NO_DEBUG
-
-    if (!this->memberAccessors->contains(memberName))
+    if (this->isLittleEndian)
     {
-        QString errMsg = QString("No member named ") + memberName;
-        throw std::invalid_argument(errMsg.toStdString().c_str());
+        value = bswap_64(value);
     }
 
-#endif
+    return value; 
+}
 
-    return qFromBigEndian<qint64>(this->data + this->memberAccessors->value(memberName).byteOffset);
+int64_t Protobetter::DynamicObject::GetInt64(const std::string& memberName)
+{
+    std::map<std::string, FieldAccessor>::iterator it = this->memberAccessors->find(memberName);
+    if (it == this->memberAccessors->end())
+    {
+        std::string errMsg = std::string("No member named ") + memberName;
+        throw std::invalid_argument(errMsg.c_str());
+    }
+
+    return GetInt64(this->memberAccessors->at(memberName));
 }
 
 float Protobetter::DynamicObject::GetFloat(const Protobetter::FieldAccessor &accessor)
 {
-    char *start = this->data + accessor.byteOffset;
+    int32_t value;
+    memcpy(&value, this->data + accessor.byteOffset, 4);
 
-    qint32 swappedData = qFromBigEndian<qint32>(start);
-
-    float value = 0.0f;
-
-    memcpy(&value, &swappedData, 4);
-
-    return value;
-}
-
-float Protobetter::DynamicObject::GetFloat(QString memberName)
-{
-#ifndef QT_NO_DEBUG
-
-    if (!this->memberAccessors->contains(memberName))
+    if (this->isLittleEndian)
     {
-        QString errMsg = QString("No member named ") + memberName;
-        throw std::invalid_argument(errMsg.toStdString().c_str());
+        value = bswap_32(value);
     }
 
-#endif
+    float fValue = 0.0f;
+    memcpy(&fValue, &value, 4);
 
-    Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
+    return fValue;
+}
 
-    return this->GetFloat(accessor);
+float Protobetter::DynamicObject::GetFloat(const std::string& memberName)
+{
+    std::map<std::string, FieldAccessor>::iterator it = this->memberAccessors->find(memberName);
+    if (it == this->memberAccessors->end())
+    {
+        std::string errMsg = std::string("No member named ") + memberName;
+        throw std::invalid_argument(errMsg.c_str());
+    }
+
+    return GetFloat(this->memberAccessors->at(memberName));
 }
 
 double Protobetter::DynamicObject::GetDouble(const Protobetter::FieldAccessor &accessor)
 {
-    char *start = this->data + accessor.byteOffset;
+    int64_t value;
+    memcpy(&value, this->data + accessor.byteOffset, 8);
 
-    qint64 swappedData = qFromBigEndian<qint64>(start);
-
-    double value = 0.0f;
-
-    memcpy(&value, &swappedData, 8);
-
-    return value;
-}
-
-double Protobetter::DynamicObject::GetDouble(QString memberName)
-{
-#ifndef QT_NO_DEBUG
-
-    if (!this->memberAccessors->contains(memberName))
+    if (this->isLittleEndian)
     {
-        QString errMsg = QString("No member named ") + memberName;
-        throw std::invalid_argument(errMsg.toStdString().c_str());
+        value = bswap_64(value);
     }
 
-#endif
+    double dValue = 0.0;
+    memcpy(&dValue, &value, 8);
 
-    Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
+    return dValue;
+}
 
-    return this->GetDouble(accessor);
+double Protobetter::DynamicObject::GetDouble(const std::string& memberName)
+{
+    std::map<std::string, FieldAccessor>::iterator it = this->memberAccessors->find(memberName);
+    if (it == this->memberAccessors->end())
+    {
+        std::string errMsg = std::string("No member named ") + memberName;
+        throw std::invalid_argument(errMsg.c_str());
+    }
+
+    return GetDouble(this->memberAccessors->at(memberName));
 }
 
 void Protobetter::DynamicObject::SetUInt8(const Protobetter::FieldAccessor &accessor, uint8_t value)
@@ -1066,19 +1113,16 @@ void Protobetter::DynamicObject::SetUInt8(const Protobetter::FieldAccessor &acce
     memcpy(this->data + accessor.byteOffset, &value, 1);
 }
 
-void Protobetter::DynamicObject::SetUInt8(QString memberName, uint8_t value)
+void Protobetter::DynamicObject::SetUInt8(const std::string& memberName, uint8_t value)
 {
-#ifndef QT_NO_DEBUG
-
-    if (!this->memberAccessors->contains(memberName))
+    std::map<std::string, FieldAccessor>::iterator it = this->memberAccessors->find(memberName);
+    if (it == this->memberAccessors->end())
     {
-        QString errMsg = QString("No member named ") + memberName;
-        throw std::invalid_argument(errMsg.toStdString().c_str());
+        std::string errMsg = std::string("No member named ") + memberName;
+        throw std::invalid_argument(errMsg.c_str());
     }
 
-#endif
-
-    Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
+    Protobetter::FieldAccessor accessor = this->memberAccessors->at(memberName);
 
     this->SetUInt8(accessor, value);
 }
@@ -1088,19 +1132,16 @@ void Protobetter::DynamicObject::SetInt8(const Protobetter::FieldAccessor &acces
     memcpy(this->data + accessor.byteOffset, &value, 1);
 }
 
-void Protobetter::DynamicObject::SetInt8(QString memberName, int8_t value)
+void Protobetter::DynamicObject::SetInt8(const std::string& memberName, int8_t value)
 {
-#ifndef QT_NO_DEBUG
-
-    if (!this->memberAccessors->contains(memberName))
+    std::map<std::string, FieldAccessor>::iterator it = this->memberAccessors->find(memberName);
+    if (it == this->memberAccessors->end())
     {
-        QString errMsg = QString("No member named ") + memberName;
-        throw std::invalid_argument(errMsg.toStdString().c_str());
+        std::string errMsg = std::string("No member named ") + memberName;
+        throw std::invalid_argument(errMsg.c_str());
     }
 
-#endif
-
-    Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
+    Protobetter::FieldAccessor accessor = this->memberAccessors->at(memberName);
 
     this->SetInt8(accessor, value);
 }
@@ -1109,214 +1150,198 @@ void Protobetter::DynamicObject::SetUInt16(const Protobetter::FieldAccessor &acc
 {
     uint16_t swappedValue = 0;
 
-    qToBigEndian<quint16>(value, &swappedValue);
+    if (this->isLittleEndian)
+    {
+        swappedValue = bswap_16(value);
+    }
 
     memcpy(this->data + accessor.byteOffset, &swappedValue, 2);
 }
 
-void Protobetter::DynamicObject::SetUInt16(QString memberName, uint16_t value)
+void Protobetter::DynamicObject::SetUInt16(const std::string& memberName, uint16_t value)
 {
-#ifndef QT_NO_DEBUG
-
-    if (!this->memberAccessors->contains(memberName))
+    std::map<std::string, FieldAccessor>::iterator it = this->memberAccessors->find(memberName);
+    if (it == this->memberAccessors->end())
     {
-        QString errMsg = QString("No member named ") + memberName;
-        throw std::invalid_argument(errMsg.toStdString().c_str());
+        std::string errMsg = std::string("No member named ") + memberName;
+        throw std::invalid_argument(errMsg.c_str());
     }
 
-#endif
-
-    Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
-
-    this->SetUInt16(accessor, value);
+    this->SetUInt16(this->memberAccessors->at(memberName), value);
 }
 
 void Protobetter::DynamicObject::SetInt16(const Protobetter::FieldAccessor &accessor, int16_t value)
 {
     int16_t swappedValue = 0;
 
-    qToBigEndian<qint16>(value, &swappedValue);
+    if (this->isLittleEndian)
+    {
+        swappedValue = bswap_16(value);
+    }
 
     memcpy(this->data + accessor.byteOffset, &swappedValue, 2);
 }
 
-void Protobetter::DynamicObject::SetInt16(QString memberName, int16_t value)
+void Protobetter::DynamicObject::SetInt16(const std::string& memberName, int16_t value)
 {
-#ifndef QT_NO_DEBUG
-
-    if (!this->memberAccessors->contains(memberName))
+    std::map<std::string, FieldAccessor>::iterator it = this->memberAccessors->find(memberName);
+    if (it == this->memberAccessors->end())
     {
-        QString errMsg = QString("No member named ") + memberName;
-        throw std::invalid_argument(errMsg.toStdString().c_str());
+        std::string errMsg = std::string("No member named ") + memberName;
+        throw std::invalid_argument(errMsg.c_str());
     }
 
-#endif
-
-    Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
-
-    this->SetInt16(accessor, value);
+    this->SetInt16(this->memberAccessors->at(memberName), value);
 }
 
 void Protobetter::DynamicObject::SetUInt32(const Protobetter::FieldAccessor &accessor, uint32_t value)
 {
     uint32_t swappedValue = 0;
 
-    qToBigEndian<quint32>(value, &swappedValue);
+    if (this->isLittleEndian)
+    {
+        swappedValue = bswap_32(value);
+    }
 
     memcpy(this->data + accessor.byteOffset, &swappedValue, 4);
 }
 
-void Protobetter::DynamicObject::SetUInt32(QString memberName, uint32_t value)
+void Protobetter::DynamicObject::SetUInt32(const std::string& memberName, uint32_t value)
 {
-#ifndef QT_NO_DEBUG
-
-    if (!this->memberAccessors->contains(memberName))
+    std::map<std::string, FieldAccessor>::iterator it = this->memberAccessors->find(memberName);
+    if (it == this->memberAccessors->end())
     {
-        QString errMsg = QString("No member named ") + memberName;
-        throw std::invalid_argument(errMsg.toStdString().c_str());
+        std::string errMsg = std::string("No member named ") + memberName;
+        throw std::invalid_argument(errMsg.c_str());
     }
 
-#endif
-
-    Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
-
-    this->SetUInt32(accessor, value);
+    this->SetUInt32(this->memberAccessors->at(memberName), value);
 }
 
 void Protobetter::DynamicObject::SetInt32(const Protobetter::FieldAccessor &accessor, int32_t value)
 {
     int32_t swappedValue = 0;
 
-    qToBigEndian<qint32>(value, &swappedValue);
+    if (this->isLittleEndian)
+    {
+        swappedValue = bswap_32(value);
+    }
 
     memcpy(this->data + accessor.byteOffset, &swappedValue, 4);
 }
 
-void Protobetter::DynamicObject::SetInt32(QString memberName, int32_t value)
+void Protobetter::DynamicObject::SetInt32(const std::string& memberName, int32_t value)
 {
-#ifndef QT_NO_DEBUG
-
-    if (!this->memberAccessors->contains(memberName))
+    std::map<std::string, FieldAccessor>::iterator it = this->memberAccessors->find(memberName);
+    if (it == this->memberAccessors->end())
     {
-        QString errMsg = QString("No member named ") + memberName;
-        throw std::invalid_argument(errMsg.toStdString().c_str());
+        std::string errMsg = std::string("No member named ") + memberName;
+        throw std::invalid_argument(errMsg.c_str());
     }
 
-#endif
-
-    Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
-
-    this->SetInt32(accessor, value);
+    this->SetInt32(this->memberAccessors->at(memberName), value);
 }
 
 void Protobetter::DynamicObject::SetUInt64(const Protobetter::FieldAccessor &accessor, uint64_t value)
 {
     uint64_t swappedValue = 0;
 
-    qToBigEndian<quint64>(value, &swappedValue);
+    if (this->isLittleEndian)
+    {
+        swappedValue = bswap_64(value);
+    }
 
     memcpy(this->data + accessor.byteOffset, &swappedValue, 8);
 }
 
-void Protobetter::DynamicObject::SetUInt64(QString memberName, uint64_t value)
+void Protobetter::DynamicObject::SetUInt64(const std::string& memberName, uint64_t value)
 {
-#ifndef QT_NO_DEBUG
-
-    if (!this->memberAccessors->contains(memberName))
+    std::map<std::string, FieldAccessor>::iterator it = this->memberAccessors->find(memberName);
+    if (it == this->memberAccessors->end())
     {
-        QString errMsg = QString("No member named ") + memberName;
-        throw std::invalid_argument(errMsg.toStdString().c_str());
+        std::string errMsg = std::string("No member named ") + memberName;
+        throw std::invalid_argument(errMsg.c_str());
     }
 
-#endif
-
-    Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
-
-    this->SetUInt64(accessor, value);
+    this->SetUInt64(this->memberAccessors->at(memberName), value);
 }
 
 void Protobetter::DynamicObject::SetInt64(const Protobetter::FieldAccessor &accessor, int64_t value)
 {
     int64_t swappedValue = 0;
 
-    qToBigEndian<qint64>(value, &swappedValue);
+    if (this->isLittleEndian)
+    {
+        swappedValue = bswap_64(value);
+    }
 
     memcpy(this->data + accessor.byteOffset, &swappedValue, 8);
 }
 
-void Protobetter::DynamicObject::SetInt64(QString memberName, int64_t value)
+void Protobetter::DynamicObject::SetInt64(const std::string& memberName, int64_t value)
 {
-#ifndef QT_NO_DEBUG
-
-    if (!this->memberAccessors->contains(memberName))
+    std::map<std::string, FieldAccessor>::iterator it = this->memberAccessors->find(memberName);
+    if (it == this->memberAccessors->end())
     {
-        QString errMsg = QString("No member named ") + memberName;
-        throw std::invalid_argument(errMsg.toStdString().c_str());
+        std::string errMsg = std::string("No member named ") + memberName;
+        throw std::invalid_argument(errMsg.c_str());
     }
 
-#endif
-
-    Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
-
-    this->SetInt64(accessor, value);
+    this->SetInt64(this->memberAccessors->at(memberName), value);
 }
 
 void Protobetter::DynamicObject::SetFloat(const Protobetter::FieldAccessor &accessor, float value)
 {
-    uint32_t packedValue = 0;
+    int32_t packedValue = 0;
 
-    uint32_t unpackedValue = 0;
+    int32_t unpackedValue = 0;
     memcpy(&unpackedValue, &value, 4);
 
-    qToBigEndian<qint32>(unpackedValue, &packedValue);
+    if (this->isLittleEndian)
+    {
+        packedValue = bswap_32(unpackedValue);
+    }
 
     memcpy(this->data + accessor.byteOffset, &packedValue, 4);
 }
 
-void Protobetter::DynamicObject::SetFloat(QString memberName, float value)
+void Protobetter::DynamicObject::SetFloat(const std::string& memberName, float value)
 {
-#ifndef QT_NO_DEBUG
-
-    if (!this->memberAccessors->contains(memberName))
+    std::map<std::string, FieldAccessor>::iterator it = this->memberAccessors->find(memberName);
+    if (it == this->memberAccessors->end())
     {
-        QString errMsg = QString("No member named ") + memberName;
-        throw std::invalid_argument(errMsg.toStdString().c_str());
+        std::string errMsg = std::string("No member named ") + memberName;
+        throw std::invalid_argument(errMsg.c_str());
     }
 
-#endif
-
-    Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
-
-    this->SetFloat(accessor, value);
+    this->SetFloat(this->memberAccessors->at(memberName), value);
 }
 
 void Protobetter::DynamicObject::SetDouble(const Protobetter::FieldAccessor &accessor, double value)
 {
-    uint64_t packedValue = 0;
+    int64_t packedValue = 0;
 
-    uint64_t unpackedValue = 0;
+    int64_t unpackedValue = 0;
     memcpy(&unpackedValue, &value, 8);
 
-    qToBigEndian<qint64>(unpackedValue, &packedValue);
+    if (this->isLittleEndian)
+    {
+        packedValue = bswap_64(unpackedValue);
+    }
 
     memcpy(this->data + accessor.byteOffset, &packedValue, 8);
 }
 
-void Protobetter::DynamicObject::SetDouble(QString memberName, double value)
+void Protobetter::DynamicObject::SetDouble(const std::string& memberName, double value)
 {
-#ifndef QT_NO_DEBUG
-
-    if (!this->memberAccessors->contains(memberName))
+    std::map<std::string, FieldAccessor>::iterator it = this->memberAccessors->find(memberName);
+    if (it == this->memberAccessors->end())
     {
-        QString errMsg = QString("No member named ") + memberName;
-        throw std::invalid_argument(errMsg.toStdString().c_str());
+        std::string errMsg = std::string("No member named ") + memberName;
+        throw std::invalid_argument(errMsg.c_str());
     }
 
-#endif
-
-    Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
-
-    this->SetDouble(accessor, value);
+    this->SetDouble(this->memberAccessors->at(memberName), value);
 }
 
 const char * Protobetter::DynamicObject::GetByteArray(const Protobetter::FieldAccessor &accessor)
@@ -1324,19 +1349,16 @@ const char * Protobetter::DynamicObject::GetByteArray(const Protobetter::FieldAc
     return (this->data + accessor.byteOffset);
 }
 
-const char * Protobetter::DynamicObject::GetByteArray(QString memberName)
+const char * Protobetter::DynamicObject::GetByteArray(const std::string& memberName)
 {
-#ifndef QT_NO_DEBUG
-
-    if (!this->memberAccessors->contains(memberName))
+    std::map<std::string, FieldAccessor>::iterator it = this->memberAccessors->find(memberName);
+    if (it == this->memberAccessors->end())
     {
-        QString errMsg = QString("No member named ") + memberName;
-        throw std::invalid_argument(errMsg.toStdString().c_str());
+        std::string errMsg = std::string("No member named ") + memberName;
+        throw std::invalid_argument(errMsg.c_str());
     }
 
-#endif
-
-    Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
+    Protobetter::FieldAccessor accessor = this->memberAccessors->at(memberName);
 
     return (this->data + accessor.byteOffset);
 }
@@ -1346,19 +1368,16 @@ void Protobetter::DynamicObject::SetByteArray(const Protobetter::FieldAccessor &
     memcpy(this->data + accessor.byteOffset, value, accessor.size);
 }
 
-void Protobetter::DynamicObject::SetByteArray(QString memberName, const char *value)
+void Protobetter::DynamicObject::SetByteArray(const std::string& memberName, const char *value)
 {
-#ifndef QT_NO_DEBUG
-
-    if (!this->memberAccessors->contains(memberName))
+    std::map<std::string, FieldAccessor>::iterator it = this->memberAccessors->find(memberName);
+    if (it == this->memberAccessors->end())
     {
-        QString errMsg = QString("No member named ") + memberName;
-        throw std::invalid_argument(errMsg.toStdString().c_str());
+        std::string errMsg = std::string("No member named ") + memberName;
+        throw std::invalid_argument(errMsg.c_str());
     }
 
-#endif
-
-    Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
+    Protobetter::FieldAccessor accessor = this->memberAccessors->at(memberName);
 
     memcpy(this->data + accessor.byteOffset, value, accessor.size);
 }
@@ -1377,19 +1396,37 @@ uint64_t Protobetter::DynamicObject::GetUnsignedBitfield(const Protobetter::Fiel
     }
     else if (accessor.size == 2)
     {
-        uint16_t value = qFromBigEndian<quint16>(fieldStart);
+        uint16_t value = 0;
+        memcpy(&value, fieldStart, 2);
+
+        if (this->isLittleEndian)
+        {
+            value = bswap_16(value);
+        }
 
         return (value & ~accessor.packingMask) >> accessor.bitOffset;
     }
     else if (accessor.size == 4)
     {
-        uint32_t value = qFromBigEndian<quint32>(fieldStart);
+        uint32_t value = 0;
+        memcpy(&value, fieldStart, 4);
+
+        if (this->isLittleEndian)
+        {
+            value = bswap_32(value);
+        }
 
         return (value & ~accessor.packingMask) >> accessor.bitOffset;
     }
     else if (accessor.size == 8)
     {
-        uint64_t value = qFromBigEndian<quint64>(fieldStart);
+        uint64_t value = 0;
+        memcpy(&value, fieldStart, 8);
+
+        if (this->isLittleEndian)
+        {
+            value = bswap_64(value);
+        }
 
         return (value & ~accessor.packingMask) >> accessor.bitOffset;
     }
@@ -1397,19 +1434,16 @@ uint64_t Protobetter::DynamicObject::GetUnsignedBitfield(const Protobetter::Fiel
     return 0;
 }
 
-uint64_t Protobetter::DynamicObject::GetUnsignedBitfield(QString memberName)
+uint64_t Protobetter::DynamicObject::GetUnsignedBitfield(const std::string& memberName)
 {
-#ifndef QT_NO_DEBUG
-
-    if (!this->memberAccessors->contains(memberName))
+    std::map<std::string, FieldAccessor>::iterator it = this->memberAccessors->find(memberName);
+    if (it == this->memberAccessors->end())
     {
-        QString errMsg = QString("No member named ") + memberName;
-        throw std::invalid_argument(errMsg.toStdString().c_str());
+        std::string errMsg = std::string("No member named ") + memberName;
+        throw std::invalid_argument(errMsg.c_str());
     }
 
-#endif
-
-    Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
+    Protobetter::FieldAccessor accessor = this->memberAccessors->at(memberName);
 
     return this->GetUnsignedBitfield(accessor);
 }
@@ -1428,7 +1462,13 @@ int64_t Protobetter::DynamicObject::GetSignedBitfield(const Protobetter::FieldAc
     }
     else if (accessor.size == 2)
     {
-        uint16_t value = qFromBigEndian<quint16>(fieldStart);
+        uint16_t value = 0;
+        memcpy(&value, fieldStart, 2);
+
+        if (this->isLittleEndian)
+        {
+            value = bswap_16(value);
+        }
 
         value = (value & ~accessor.packingMask) >> accessor.bitOffset;
 
@@ -1436,7 +1476,13 @@ int64_t Protobetter::DynamicObject::GetSignedBitfield(const Protobetter::FieldAc
     }
     else if (accessor.size == 4)
     {
-        uint32_t value = qFromBigEndian<quint32>(fieldStart);
+        uint32_t value = 0;
+        memcpy(&value, fieldStart, 4);
+
+        if (this->isLittleEndian)
+        {
+            value = bswap_32(value);
+        }
 
         value = (value & ~accessor.packingMask) >> accessor.bitOffset;
 
@@ -1444,7 +1490,13 @@ int64_t Protobetter::DynamicObject::GetSignedBitfield(const Protobetter::FieldAc
     }
     else if (accessor.size == 8)
     {
-        uint64_t value = qFromBigEndian<quint64>(fieldStart);
+        uint64_t value = 0;
+        memcpy(&value, fieldStart, 8);
+
+        if (this->isLittleEndian)
+        {
+            value = bswap_64(value);
+        }
 
         value = (value & ~accessor.packingMask) >> accessor.bitOffset;
 
@@ -1454,19 +1506,16 @@ int64_t Protobetter::DynamicObject::GetSignedBitfield(const Protobetter::FieldAc
     return -1;
 }
 
-int64_t Protobetter::DynamicObject::GetSignedBitfield(QString memberName)
+int64_t Protobetter::DynamicObject::GetSignedBitfield(const std::string& memberName)
 {
-#ifndef QT_NO_DEBUG
-
-    if (!this->memberAccessors->contains(memberName))
+    std::map<std::string, FieldAccessor>::iterator it = this->memberAccessors->find(memberName);
+    if (it == this->memberAccessors->end())
     {
-        QString errMsg = QString("No member named ") + memberName;
-        throw std::invalid_argument(errMsg.toStdString().c_str());
+        std::string errMsg = std::string("No member named ") + memberName;
+        throw std::invalid_argument(errMsg.c_str());
     }
 
-#endif
-
-    Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
+    Protobetter::FieldAccessor accessor = this->memberAccessors->at(memberName);
 
     return this->GetSignedBitfield(accessor);
 }
@@ -1489,43 +1538,73 @@ void Protobetter::DynamicObject::SetSignedBitfield(const Protobetter::FieldAcces
     }
     else if (accessor.size == 2)
     {
-        int16_t buffer = qFromBigEndian<qint16>(fieldStart);
+        int16_t buffer = 0;
+        memcpy(&buffer, fieldStart, 2);
+
+        if (this->isLittleEndian)
+        {
+            buffer = bswap_16(buffer);
+        }
 
         buffer = (buffer & accessor.packingMask) | (unsignedContainer << accessor.bitOffset);
 
-        qToBigEndian<qint16>(buffer, fieldStart);
+        if (this->isLittleEndian)
+        {
+            buffer = bswap_16(buffer);
+        }
+
+        memcpy(fieldStart, &buffer, 2);
     }
     else if (accessor.size == 4)
     {
-        int32_t buffer = qFromBigEndian<qint32>(fieldStart);
+        int32_t buffer = 0;
+        memcpy(&buffer, fieldStart, 4);
+
+        if (this->isLittleEndian)
+        {
+            buffer = bswap_32(buffer);
+        }   
 
         buffer = (buffer & accessor.packingMask) | (unsignedContainer << accessor.bitOffset);
 
-        qToBigEndian<qint32>(buffer, fieldStart);
+        if (this->isLittleEndian)
+        {
+            buffer = bswap_32(buffer);
+        }   
+
+        memcpy(fieldStart, &buffer, 4);
     }
     else if (accessor.size == 8)
     {
-        int64_t buffer = qFromBigEndian<qint64>(fieldStart);
+        int64_t buffer = 0;
+        memcpy(&buffer, fieldStart, 8);
+
+        if (this->isLittleEndian)
+        {
+            buffer = bswap_64(buffer);
+        }
 
         buffer = (buffer & accessor.packingMask) | (unsignedContainer << accessor.bitOffset);
 
-        qToBigEndian<qint64>(buffer, fieldStart);
+        if (this->isLittleEndian)
+        {
+            buffer = bswap_64(buffer);
+        }
+
+        memcpy(fieldStart, &buffer, 8);
     }
 }
 
-void Protobetter::DynamicObject::SetSignedBitfield(QString memberName, int64_t value)
+void Protobetter::DynamicObject::SetSignedBitfield(const std::string& memberName, int64_t value)
 {
-#ifndef QT_NO_DEBUG
-
-    if (!this->memberAccessors->contains(memberName))
+    std::map<std::string, FieldAccessor>::iterator it = this->memberAccessors->find(memberName);
+    if (it == this->memberAccessors->end())
     {
-        QString errMsg = QString("No member named ") + memberName;
-        throw std::invalid_argument(errMsg.toStdString().c_str());
+        std::string errMsg = std::string("No member named ") + memberName;
+        throw std::invalid_argument(errMsg.c_str());
     }
 
-#endif
-
-    Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
+    Protobetter::FieldAccessor accessor = this->memberAccessors->at(memberName);
 
     this->SetSignedBitfield(accessor, value);
 }
@@ -1547,74 +1626,95 @@ void Protobetter::DynamicObject::SetUnsignedBitfield(const Protobetter::FieldAcc
     else if (accessor.size == 2)
     {
         uint16_t buffer;
+        memcpy(&buffer, fieldStart, 2);
 
-        buffer = qFromBigEndian<quint16>(fieldStart);
+        if (this->isLittleEndian)
+        {
+            buffer = bswap_16(buffer);
+        }
 
         buffer = (buffer & accessor.packingMask) | (value << accessor.bitOffset);
 
-        qToBigEndian<quint16>(buffer, fieldStart);
+        if (this->isLittleEndian)
+        {
+            buffer = bswap_16(buffer);
+        }
+
+        memcpy(fieldStart, &buffer, 2);
     }
     else if (accessor.size == 4)
     {
         uint32_t buffer;
+        memcpy(&buffer, fieldStart, 4);
 
-        buffer = qFromBigEndian<quint32>(fieldStart);
+        if (this->isLittleEndian)
+        {
+            buffer = bswap_32(buffer);
+        }
 
         buffer = (buffer & accessor.packingMask) | (value << accessor.bitOffset);
 
-        qToBigEndian<quint32>(buffer, fieldStart);
+        if (this->isLittleEndian)
+        {
+            buffer = bswap_32(buffer);
+        }
+
+        memcpy(fieldStart, &buffer, 4);
     }
     else if (accessor.size == 8)
     {
         uint64_t buffer;
+        memcpy(&buffer, fieldStart, 8);
 
-        buffer = qFromBigEndian<quint64>(fieldStart);
+        if (this->isLittleEndian)
+        {
+            buffer = bswap_64(buffer);
+        }
 
         buffer = (buffer & accessor.packingMask) | (value << accessor.bitOffset);
 
-        qToBigEndian<quint64>(buffer, fieldStart);
+        if (this->isLittleEndian)
+        {
+            buffer = bswap_64(buffer);
+        }
+
+        memcpy(fieldStart, &buffer, 8); 
     }
 }
 
-void Protobetter::DynamicObject::SetUnsignedBitfield(QString memberName, uint64_t value)
+void Protobetter::DynamicObject::SetUnsignedBitfield(const std::string& memberName, uint64_t value)
 {
-#ifndef QT_NO_DEBUG
-
-    if (!this->memberAccessors->contains(memberName))
+    std::map<std::string, FieldAccessor>::iterator it = this->memberAccessors->find(memberName);
+    if (it == this->memberAccessors->end())
     {
-        QString errMsg = QString("No member named ") + memberName;
-        throw std::invalid_argument(errMsg.toStdString().c_str());
+        std::string errMsg = std::string("No member named ") + memberName;
+        throw std::invalid_argument(errMsg.c_str());
     }
 
-#endif
-
-    Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
+    Protobetter::FieldAccessor accessor = this->memberAccessors->at(memberName);
 
     this->SetUnsignedBitfield(accessor, value);
 }
 
-Protobetter::DynamicObject Protobetter::DynamicObject::GetObject(QSharedPointer<DynamicType> type, const Protobetter::FieldAccessor &accessor)
+Protobetter::DynamicObject Protobetter::DynamicObject::GetObject(std::shared_ptr<DynamicType> type, const Protobetter::FieldAccessor &accessor)
 {
     return Protobetter::DynamicObject(type, this->data + accessor.byteOffset);
 }
 
-Protobetter::DynamicObject Protobetter::DynamicObject::GetObject(QSharedPointer<DynamicType> type, QString memberName)
+Protobetter::DynamicObject Protobetter::DynamicObject::GetObject(std::shared_ptr<DynamicType> type, const std::string& memberName)
 {
-#ifndef QT_NO_DEBUG
-
-    if (!this->memberAccessors->contains(memberName))
+    std::map<std::string, FieldAccessor>::iterator it = this->memberAccessors->find(memberName);
+    if (it == this->memberAccessors->end())
     {
-        QString errMsg = QString("No member named ") + memberName;
-        throw std::invalid_argument(errMsg.toStdString().c_str());
+        std::string errMsg = std::string("No member named ") + memberName;
+        throw std::invalid_argument(errMsg.c_str());
     }
     else if ((!type->IsComplete()) || (!type->IsRoot()))
     {
         throw std::invalid_argument("Protobetter::DynamicObject::GetObject() must only be called on a complete root type!");
     }
 
-#endif
-
-    Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
+    Protobetter::FieldAccessor accessor = this->memberAccessors->at(memberName);
 
     char *fieldStart = this->data + accessor.byteOffset;
 
@@ -1626,19 +1726,16 @@ void Protobetter::DynamicObject::SetObject(const Protobetter::FieldAccessor &acc
     memcpy(this->data + accessor.byteOffset, object.Data(), accessor.size);
 }
 
-void Protobetter::DynamicObject::SetObject(QString memberName, const DynamicObject &object)
+void Protobetter::DynamicObject::SetObject(const std::string& memberName, const DynamicObject &object)
 {
-#ifndef QT_NO_DEBUG
-
-    if (!this->memberAccessors->contains(memberName))
+    std::map<std::string, FieldAccessor>::iterator it = this->memberAccessors->find(memberName);
+    if (it == this->memberAccessors->end())
     {
-        QString errMsg = QString("No member named ") + memberName;
-        throw std::invalid_argument(errMsg.toStdString().c_str());
+        std::string errMsg = std::string("No member named ") + memberName;
+        throw std::invalid_argument(errMsg.c_str());
     }
 
-#endif
-
-    Protobetter::FieldAccessor accessor = this->memberAccessors->value(memberName);
+    Protobetter::FieldAccessor accessor = this->memberAccessors->at(memberName);
 
     char *fieldStart = this->data + accessor.byteOffset;
 
@@ -1681,136 +1778,115 @@ namespace {
 
 
 //    }
+
+    void BuildPrototypeFromXTCESpaceSystem(xmlNode *node)
+    {
+        while (node != NULL)
+        {
+            if (xmlStrcmp(node->name, (const xmlChar *)"SpaceSystem") == 0)
+            {
+                xmlChar *name = xmlGetProp(node, (const xmlChar*)"name");
+                std::cout << "Found a space system w/ attribute 'name' = " << name << std::endl;
+                xmlFree(name);
+
+                xmlNode *child = node->xmlChildrenNode;
+                BuildPrototypeFromXTCESpaceSystem(child); 
+            }
+
+            node = node->next;
+        }
+    }
 }
 
-void Protobetter::PrototypeCollection::LoadPrototypesFromXTCE(QString filePath)
+void Protobetter::PrototypeCollection::LoadPrototypesFromXTCE(const std::string& filePath)
 {
-    QFile f(filePath);
-
-    if (!f.open(QFile::ReadOnly | QFile::Text))
+    LIBXML_TEST_VERSION 
+    xmlDoc *doc = xmlReadFile(filePath.c_str(), NULL, 0);
+    if (doc == NULL)
     {
-        qInfo("Unable to open XTCE file: %s", filePath.toStdString().c_str());
+        std::cout << "Unable to open XTCE file: " << filePath << std::endl;
         return;
     }
 
-    QXmlStreamReader reader(&f);
-
-    while (!reader.atEnd())
-    {
-        auto token = reader.readNext();
-
-        if (token == QXmlStreamReader::StartDocument)
-        {
-            // ignore startdoc token
-            continue;
-        }
-
-        if (token == QXmlStreamReader::StartElement)
-        {
-            if (reader.name() == "SpaceSystem")
-            {
-                auto elementAttributes = reader.attributes();
-
-                if (elementAttributes.hasAttribute("name"))
-                {
-                    qDebug("Found a space system w/ attribute 'name' = %s", elementAttributes.value("name").toString().toStdString().c_str());
-                }
-            }
-        }
-    }
-
-    f.close();
+    xmlNode *rootElement = xmlDocGetRootElement(doc);
+    BuildPrototypeFromXTCESpaceSystem(rootElement);
+    
+    xmlFreeDoc(doc);
+    xmlCleanupParser();
 }
 
-void Protobetter::PrototypeCollection::LoadPrototypesFromPType(const QJsonDocument &jsonDoc)
+void Protobetter::PrototypeCollection::LoadPrototypesFromPType(const Json::Value &root)
 {
-    if (jsonDoc.isArray())
+    for (Json::Value::iterator it = root.begin(); it != root.end(); ++it)
     {
-        // we're expecting an array of json objects
-        for (int i = 0; i < jsonDoc.array().count(); ++i)
+        Prototype prototype = BuildPrototypeFromJsonObject(*it);
+
+        if (this->HasType(prototype.name))
         {
-            QJsonObject object = jsonDoc.array().at(i).toObject();
-
-            Prototype prototype = BuildPrototypeFromJsonObject(object);
-
-            if (this->HasType(prototype.name))
-            {
-                std::cout << "PROTOBETTER WARNING: multiple definitions found for type: " << prototype.name.toStdString()
-                    << "... ignoring all subsequent definitions..." << std::endl;
-            }
-            else
-            {
-                this->rootTypes.append(prototype);
-            }
+            std::cout << "PROTOBETTER WARNING: multiple definitions found for type: " << prototype.name << "... ignoring all subsequent definitions..." << std::endl;
         }
-    }
-    else if (jsonDoc.isObject())
-    {
-        // we're expecting a single json object
-        QJsonObject object = jsonDoc.object();
-
-        Prototype prototype = BuildPrototypeFromJsonObject(object);
-
-        this->rootTypes.append(prototype);
+        else
+        {
+            this->rootTypes.push_back(prototype);
+        }
     }
 }
 
-void Protobetter::PrototypeCollection::LoadPrototypesFromPType(QString filePath)
+void Protobetter::PrototypeCollection::LoadPrototypesFromPType(const std::string& filePath)
 {
-    QFile f(filePath);
-
-    if (!f.open(QFile::ReadOnly | QFile::Text))
+    std::ifstream file(filePath);
+    
+    if (!file.is_open())
     {
-        std::cout << "PrototypeCollection ERROR: Unable to open ptype file: " << filePath.toStdString().c_str() << std::endl;
+        std::cout << "PrototypeCollection ERROR: Unable to open ptype file: " << filePath << std::endl;
         return;
     }
 
-    QTextStream in(&f);
-    QByteArray jsonData(in.readAll().toUtf8());
-
-    QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData);
-
-    if (jsonDoc.isNull())
+    Json::Value root;
+    file >> root;
+    
+    if (root.isNull())
     {
-        std::cout << "PrototypeCollection ERROR: Unable to parse json document: " << filePath.toStdString().c_str() << std::endl;
+        std::cout << "PrototypeCollection ERROR: Unable to open ptype file: " << filePath << std::endl;
+        return;
     }
     else
     {
-        this->LoadPrototypesFromPType(jsonDoc);
+        this->LoadPrototypesFromPType(root);
     }
 
-    f.close();
+    file.close();
 }
 
-QJsonObject Protobetter::Prototype::ToJsonObject()
+Json::Value Protobetter::Prototype::ToJsonObject()
 {
-    QJsonObject object;
+    Json::Value object;
 
-    object.insert("name", this->name);
+    object["name"] = this->name.c_str();
 
-    QJsonArray membersArray;
+    Json::Value membersArray;
 
-    for (int i = 0; i < this->members.count(); ++i)
+    for (unsigned int i = 0; i < this->members.size(); ++i)
     {
-        QJsonObject member;
+        Json::Value member;
 
-        member.insert("name", this->members[i].name);
-        member.insert("type", this->members[i].type);
+        member["name"] = this->members[i].name.c_str();
+        member["type"] = this->members[i].type.c_str();
 
         if (this->members[i].arrayLength != 0)
         {
-            member.insert("arraylen", this->members[i].arrayLength);
+            member["arraylen"] = this->members[i].arrayLength;
         }
 
         if (this->members[i].bits != 0)
         {
-            member.insert("bits", this->members[i].bits);
+            member["bits"] = this->members[i].bits;
         }
 
         membersArray.append(member);
     }
-
-    object.insert("members", membersArray);
+    
+    object["members"] = membersArray;
 
     return object;
 }
