@@ -91,7 +91,7 @@ namespace
         auto type = Protobetter::FieldCollection::CreateNewRootType("Bittylicious_c");
 
         type->AddField(Protobetter::PrimitiveField::CreateNewPrimitiveField("header", Protobetter::ByteArray, 16));
-        type->AddField(std::static_pointer_cast<Protobetter::DynamicType>(Protobetter::PrimitiveField::CreateNewPrimitiveField("a", Protobetter::Double, 8)));
+        type->AddField(qSharedPointerCast<Protobetter::DynamicType>(Protobetter::PrimitiveField::CreateNewPrimitiveField("a", Protobetter::Double, 8)));
 
         type->AddField(Protobetter::FieldCollection::CreateFieldFromRootType("b[0]", lilBittyRootType, true));
         type->AddField(Protobetter::FieldCollection::CreateFieldFromRootType("b[1]", lilBittyRootType, true));
@@ -229,8 +229,7 @@ void ProtobetterTest::TestPrototypeJsonDeserialization()
 {
     Protobetter::PrototypeCollection prototypes;
 
-    std::string fpath = "./protobetter_dynamic_test/data/test_c.ptype";
-    prototypes.LoadPrototypesFromPType(fpath);
+    prototypes.LoadPrototypesFromPType(QString(":/protobetter_test/data/test_c.ptype"));
 
     QVERIFY(prototypes.HasType("Vector_c"));
     QVERIFY(prototypes.HasType("LilBity_c"));
@@ -241,8 +240,7 @@ void ProtobetterTest::TestAmpsPrototypeJsonDeserialization()
 {
     Protobetter::PrototypeCollection prototypes;
 
-    std::string fpath = "./protobetter_dynamic_test/data/habitat_ptypes/protobetter_AMPS.ptype";
-    prototypes.LoadPrototypesFromPType(fpath);
+    prototypes.LoadPrototypesFromPType(QString(":/protobetter_test/data/habitat_ptypes/protobetter_AMPS.ptype"));
 
     QVERIFY(prototypes.HasType("PDU1"));
     QVERIFY(prototypes.HasType("MBSU1"));
@@ -253,7 +251,7 @@ void ProtobetterTest::TestXTCEDeserialization()
 {
     Protobetter::PrototypeCollection prototypes;
 
-    prototypes.LoadPrototypesFromXTCE("./protobetter_dynamic_test/data/habitat_1.xtce");
+    prototypes.LoadPrototypesFromXTCE(":/protobetter_test/data/habitat_1.xtce");
 }
 
 void ProtobetterTest::TestDynamicAPI()
@@ -515,8 +513,7 @@ void ProtobetterTest::TestBittylicousFromPtypeFile()
 
         Protobetter::PrototypeCollection prototypes;
 
-        std::string fpath = "./protobetter_dynamic_test/data/test_c.ptype";
-        prototypes.LoadPrototypesFromPType(fpath);
+        prototypes.LoadPrototypesFromPType(QString(":/protobetter_test/data/test_c.ptype"));
 
         QVERIFY(prototypes.Size() == 4);
 
@@ -598,8 +595,7 @@ void ProtobetterTest::TestAgainstProtobetterC()
 
         Protobetter::PrototypeCollection prototypes;
 
-        std::string fpath = "./protobetter_dynamic_test/data/test_c.ptype";
-        prototypes.LoadPrototypesFromPType(fpath);
+        prototypes.LoadPrototypesFromPType(QString(":/protobetter_test/data/test_c.ptype"));
 
         QVERIFY(prototypes.Size() == 4);
 
@@ -650,8 +646,7 @@ void ProtobetterTest::TestSuperBityFromPtypeFile()
     {
         Protobetter::PrototypeCollection prototypes;
 
-        std::string fpath = "./protobetter_dynamic_test/data/test_c.ptype";
-        prototypes.LoadPrototypesFromPType(fpath);
+        prototypes.LoadPrototypesFromPType(QString(":/protobetter_test/data/test_c.ptype"));
 
         QVERIFY(prototypes.Size() == 4);
 

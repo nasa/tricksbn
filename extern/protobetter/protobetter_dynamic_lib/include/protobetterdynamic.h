@@ -1,15 +1,23 @@
 #ifndef PROTOBETTERDYNAMIC_H
 #define PROTOBETTERDYNAMIC_H
 
-#include <map>
-#include <string>
-#include <vector>
-#include <memory>
-#include <cstdint>
+#include <cstring>
 
-#include <json/json.h>
+#include <stdint.h>
 
-// TODO: update this so that you pass your strings and similar types around
+#include <QString>
+#include <QMap>
+#include <QList>
+
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+
+#include <QSharedPointer>
+
+#include "protobetter_dynamic_lib_global.h"
+
+// TODO: update this so that you pass your QStrings and similar types around
 // by const reference for better performance where possible
 
 namespace Protobetter
@@ -32,39 +40,39 @@ namespace Protobetter
         Object
     };
 
-    struct PrototypeMember
+    struct PROTOBETTER_DYNAMIC_LIBSHARED_EXPORT PrototypeMember
     {
-        std::string name;
-        std::string type;
+        QString name;
+        QString type;
         int arrayLength = 0;
         int bits = 0;
     };
 
     // this is the c++ object corresponding to a single 'ProtoType'
     // json object defined in a *.ptype file
-    class Prototype
+    class PROTOBETTER_DYNAMIC_LIBSHARED_EXPORT Prototype
     {
     public:
 
         Prototype();
-        Prototype(const std::string& name);
+        Prototype(QString name);
 
-        Json::Value ToJsonObject();
+        QJsonObject ToJsonObject();
 
-        bool HasMember(const std::string& memberName);
-        PrototypeMember GetMember(const std::string& memberName);
+        bool HasMember(QString memberName);
+        PrototypeMember GetMember(QString memberName);
 
-        std::string name;
-        std::vector<PrototypeMember> members;
+        QString name;
+        QList<PrototypeMember> members;
     };
 
     // just a lightweight wrapper around a list of prototypes
-    class PrototypeCollection
+    class PROTOBETTER_DYNAMIC_LIBSHARED_EXPORT PrototypeCollection
     {
     public:
 
-        bool HasType(const std::string& typeName) const;
-        Prototype GetType(const std::string& typeName) const;
+        bool HasType(QString typeName) const;
+        Prototype GetType(QString typeName) const;
         Prototype GetType(const int index) const;
 
         void AddPrototype(const Prototype &prototype);
@@ -72,11 +80,11 @@ namespace Protobetter
         // TODO: do some validation on things like making sure bitfield widths are <= size of the word they are packed into,
         //      "bits" and "arraylen" aren't simultaneously specified for same member, and if "bits" is specified,
         //      the "type" better be an acceptable primitive type...
-        void LoadPrototypesFromPType(const std::string& filePath);
+        void LoadPrototypesFromPType(QString filePath);
 
-        void LoadPrototypesFromXTCE(const std::string& filePath);
+        void LoadPrototypesFromXTCE(QString filePath);
 
-        void LoadPrototypesFromPType(const Json::Value &root);
+        void LoadPrototypesFromPType(const QJsonDocument &jsonDoc);
 
         std::size_t Size() const;
 
@@ -84,10 +92,10 @@ namespace Protobetter
 
     private:
 
-        std::vector<Prototype> rootTypes;
+        QList<Prototype> rootTypes;
     };
 
-    struct FieldAccessor
+    struct PROTOBETTER_DYNAMIC_LIBSHARED_EXPORT FieldAccessor
     {        
         FieldAccessor();
         FieldAccessor(ProtobetterFieldType type, std::size_t size);
@@ -102,43 +110,43 @@ namespace Protobetter
         ProtobetterFieldType type;
     };
 
-    class DynamicType
+    class PROTOBETTER_DYNAMIC_LIBSHARED_EXPORT DynamicType
     {
     public:
 
-        typedef std::shared_ptr<DynamicType> Ptr;
+        typedef QSharedPointer<DynamicType> Ptr;
 
         // returns size in bytes
         virtual std::size_t Size() = 0;
 
-        virtual std::shared_ptr<std::map<std::string, FieldAccessor> > GetMemberMap() = 0;
+        virtual QSharedPointer<QMap<QString, FieldAccessor> > GetMemberMap() = 0;
 
         virtual std::size_t MemberCount() = 0;
 
         virtual bool IsComplete() = 0;
 
-        virtual ProtobetterFieldType GetFieldType(const std::string& name) = 0;
+        virtual ProtobetterFieldType GetFieldType(QString name) = 0;
 
-        std::string Name();
+        QString Name();
         bool IsRoot();
 
     protected:
 
-        DynamicType(const std::string& name, bool isRoot = false);
+        DynamicType(QString name, bool isRoot = false);
 
         virtual ~DynamicType() {};
 
         bool isRoot;
 
-        std::string name;
+        QString name;
     };
 
-    class DynamicTypeCollection
+    class PROTOBETTER_DYNAMIC_LIBSHARED_EXPORT DynamicTypeCollection
     {
     public:
 
-        bool HasType(const std::string& typeName);
-        DynamicType::Ptr GetType(const std::string& typeName);
+        bool HasType(QString typeName);
+        DynamicType::Ptr GetType(QString typeName);
         DynamicType::Ptr GetType(int index);
 
         std::size_t Size() const;
@@ -147,7 +155,7 @@ namespace Protobetter
 
         static DynamicTypeCollection FromPrototypeCollection(const PrototypeCollection &prototypes);
 
-        std::vector<std::string> GetRootTypeNames();
+        QStringList GetRootTypeNames();
 
         // TODO: add API methods to modify elements already added to this collection
 
@@ -155,98 +163,98 @@ namespace Protobetter
 
         static void CreateDynamicTypeFromPrototypeRecursive(const PrototypeCollection &prototypes, DynamicTypeCollection &dynamicTypes, const Protobetter::Prototype &ptype);
 
-        std::vector<DynamicType::Ptr> rootTypes;
+        QList<DynamicType::Ptr> rootTypes;
     };
 
-    class PrimitiveField : public DynamicType
+    class PROTOBETTER_DYNAMIC_LIBSHARED_EXPORT PrimitiveField : public DynamicType
     {
     public:
 
-        typedef std::shared_ptr<PrimitiveField> Ptr;
+        typedef QSharedPointer<PrimitiveField> Ptr;
 
-        static std::shared_ptr<PrimitiveField> CreateNewPrimitiveField(const std::string& name, ProtobetterFieldType type, std::size_t size);
+        static QSharedPointer<PrimitiveField> CreateNewPrimitiveField(QString name, ProtobetterFieldType type, std::size_t size);
 
         std::size_t Size();
-        std::shared_ptr<std::map<std::string, FieldAccessor> > GetMemberMap();
+        QSharedPointer<QMap<QString, FieldAccessor> > GetMemberMap();
         std::size_t MemberCount();
         bool IsComplete();
 
-        ProtobetterFieldType GetFieldType(const std::string& name);
+        ProtobetterFieldType GetFieldType(QString name);
 
     private:
 
-        PrimitiveField(const std::string& name, ProtobetterFieldType type, std::size_t size);
+        PrimitiveField(QString name, ProtobetterFieldType type, std::size_t size);
 
         ProtobetterFieldType type;
         std::size_t size;
 
-        std::shared_ptr<std::map<std::string, FieldAccessor> > memberAccessors;
+        QSharedPointer<QMap<QString, FieldAccessor> > memberAccessors;
     };
 
-    class FieldCollection : public DynamicType
+    class PROTOBETTER_DYNAMIC_LIBSHARED_EXPORT FieldCollection : public DynamicType
     {
     public:
 
-        typedef std::shared_ptr<FieldCollection> Ptr;
+        typedef QSharedPointer<FieldCollection> Ptr;
 
         // User must create types through this interface
-        static std::shared_ptr<FieldCollection> CreateNewRootType(const std::string& typeName);
-        static std::shared_ptr<FieldCollection> CreateFieldFromRootType(const std::string&  fieldName, std::shared_ptr<FieldCollection> root, bool finalize = false);
+        static QSharedPointer<FieldCollection> CreateNewRootType(QString typeName);
+        static QSharedPointer<FieldCollection> CreateFieldFromRootType(QString fieldName, QSharedPointer<FieldCollection> root, bool finalize = false);
 
         std::size_t Size();
-        std::shared_ptr<std::map<std::string, FieldAccessor> > GetMemberMap();
+        QSharedPointer<QMap<QString, FieldAccessor> > GetMemberMap();
         std::size_t MemberCount();
         bool IsComplete();
 
-        void AddField(std::shared_ptr<DynamicType> field);
-        std::shared_ptr<DynamicType> GetField(int fieldIndex);
+        void AddField(QSharedPointer<DynamicType> field);
+        QSharedPointer<DynamicType> GetField(int fieldIndex);
 
         void Finalize();
 
-        ProtobetterFieldType GetFieldType(const std::string& name);
+        ProtobetterFieldType GetFieldType(QString name);
 
     private:
 
-        FieldCollection(const std::string& name, bool isRoot = false);
+        FieldCollection(QString name, bool isRoot = false);
 
-        std::vector<std::shared_ptr<DynamicType> > fields;
+        QList<QSharedPointer<DynamicType> > fields;
 
         bool isComplete;
 
-        std::shared_ptr<std::map<std::string, FieldAccessor> > memberAccessors;
+        QSharedPointer<QMap<QString, FieldAccessor> > memberAccessors;
     };
 
-    class BitfieldCollection : public DynamicType
+    class PROTOBETTER_DYNAMIC_LIBSHARED_EXPORT BitfieldCollection : public DynamicType
     {
     public:
 
-        typedef std::shared_ptr<BitfieldCollection> Ptr;
+        typedef QSharedPointer<BitfieldCollection> Ptr;
 
         // Use factory method to create BitfieldCollections
-        static std::shared_ptr<BitfieldCollection> CreateNewBitfieldCollection(std::size_t size);
+        static QSharedPointer<BitfieldCollection> CreateNewBitfieldCollection(std::size_t size);
 
         std::size_t BitsUsed();
         std::size_t BitsAvailable();
 
         std::size_t Size();
-        std::shared_ptr<std::map<std::string, FieldAccessor> > GetMemberMap();
+        QSharedPointer<QMap<QString, FieldAccessor> > GetMemberMap();
         std::size_t MemberCount();
         bool IsComplete();
 
         void Finalize();
 
-        void AddField(const std::string& name, std::size_t width, bool isSigned);
+        void AddField(QString name, std::size_t width, bool isSigned);
 
-        ProtobetterFieldType GetFieldType(const std::string& name);
+        ProtobetterFieldType GetFieldType(QString name);
 
     private:
 
         struct Bitfield
         {
             Bitfield();
-            Bitfield(const std::string& name, std::size_t bitOffset, std::size_t length, bool isSigned);
+            Bitfield(QString name, std::size_t bitOffset, std::size_t length, bool isSigned);
 
-            std::string name;
+            QString name;
             std::size_t bitOffset;
             std::size_t length;
             bool isSigned;
@@ -255,19 +263,19 @@ namespace Protobetter
         BitfieldCollection(std::size_t size);
 
         std::size_t size;
-        std::vector<Bitfield> bitfields;
+        QList<Bitfield> bitfields;
 
         bool isComplete;
-        std::shared_ptr<std::map<std::string, FieldAccessor> > memberAccessors;
+        QSharedPointer<QMap<QString, FieldAccessor> > memberAccessors;
     };
 
-    class DynamicObject
+    class PROTOBETTER_DYNAMIC_LIBSHARED_EXPORT DynamicObject
     {
     public:
 
-        typedef std::shared_ptr<DynamicObject> Ptr;
+        typedef QSharedPointer<DynamicObject> Ptr;
 
-        DynamicObject(std::shared_ptr<DynamicType> type);
+        DynamicObject(QSharedPointer<DynamicType> type);
         ~DynamicObject();
 
         DynamicObject(const DynamicObject &other);
@@ -292,7 +300,7 @@ namespace Protobetter
         uint64_t GetUnsignedBitfield(const Protobetter::FieldAccessor &accessor);
         int64_t GetSignedBitfield(const Protobetter::FieldAccessor &accessor);
 
-        DynamicObject GetObject(std::shared_ptr<DynamicType> type, const Protobetter::FieldAccessor &accessor);
+        DynamicObject GetObject(QSharedPointer<DynamicType> type, const Protobetter::FieldAccessor &accessor);
 
         void SetUInt8(const Protobetter::FieldAccessor &accessor, uint8_t value);
         void SetUInt16(const Protobetter::FieldAccessor &accessor, uint16_t value);
@@ -316,44 +324,44 @@ namespace Protobetter
         void SetObject(const Protobetter::FieldAccessor &accessor, const DynamicObject &object);
 
         // convenience methods for grabbing member data by name
-        uint8_t GetUInt8(const std::string& memberName);
-        uint16_t GetUInt16(const std::string& memberName);
-        uint32_t GetUInt32(const std::string& memberName);
-        uint64_t GetUInt64(const std::string& memberName);
+        uint8_t GetUInt8(QString memberName);
+        uint16_t GetUInt16(QString memberName);
+        uint32_t GetUInt32(QString memberName);
+        uint64_t GetUInt64(QString memberName);
 
-        int8_t GetInt8(const std::string& memberName);
-        int16_t GetInt16(const std::string& memberName);
-        int32_t GetInt32(const std::string& memberName);
-        int64_t GetInt64(const std::string& memberName);
+        int8_t GetInt8(QString memberName);
+        int16_t GetInt16(QString memberName);
+        int32_t GetInt32(QString memberName);
+        int64_t GetInt64(QString memberName);
 
-        float GetFloat(const std::string& memberName);
-        double GetDouble(const std::string& memberName);
+        float GetFloat(QString memberName);
+        double GetDouble(QString memberName);
 
-        uint64_t GetUnsignedBitfield(const std::string& memberName);
-        int64_t GetSignedBitfield(const std::string& memberName);
+        uint64_t GetUnsignedBitfield(QString memberName);
+        int64_t GetSignedBitfield(QString memberName);
 
-        DynamicObject GetObject(std::shared_ptr<DynamicType> type, const std::string& memberName);
+        DynamicObject GetObject(QSharedPointer<DynamicType> type, QString memberName);
 
-        void SetUInt8(const std::string& memberName, uint8_t value);
-        void SetUInt16(const std::string& memberName, uint16_t value);
-        void SetUInt32(const std::string& memberName, uint32_t value);
-        void SetUInt64(const std::string& memberName, uint64_t value);
+        void SetUInt8(QString memberName, uint8_t value);
+        void SetUInt16(QString memberName, uint16_t value);
+        void SetUInt32(QString memberName, uint32_t value);
+        void SetUInt64(QString memberName, uint64_t value);
 
-        void SetInt8(const std::string& memberName, int8_t value);
-        void SetInt16(const std::string& memberName, int16_t value);
-        void SetInt32(const std::string& memberName, int32_t value);
-        void SetInt64(const std::string& memberName, int64_t value);
+        void SetInt8(QString memberName, int8_t value);
+        void SetInt16(QString memberName, int16_t value);
+        void SetInt32(QString memberName, int32_t value);
+        void SetInt64(QString memberName, int64_t value);
 
-        void SetFloat(const std::string& memberName, float value);
-        void SetDouble(const std::string& memberName, double value);
+        void SetFloat(QString memberName, float value);
+        void SetDouble(QString memberName, double value);
 
-        void SetUnsignedBitfield(const std::string& memberName, uint64_t value);
-        void SetSignedBitfield(const std::string& memberName, int64_t value);
+        void SetUnsignedBitfield(QString memberName, uint64_t value);
+        void SetSignedBitfield(QString memberName, int64_t value);
 
-        const char * GetByteArray(const std::string& memberName);
-        void SetByteArray(const std::string& memberName, const char *value);
+        const char * GetByteArray(QString memberName);
+        void SetByteArray(QString memberName, const char *value);
 
-        void SetObject(const std::string& memberName, const DynamicObject &object);
+        void SetObject(QString memberName, const DynamicObject &object);
 
         const char * Data() const;
         void SetData(const char *data);
@@ -362,15 +370,14 @@ namespace Protobetter
 
     private:
 
-        DynamicObject(std::shared_ptr<DynamicType>, char *data);
+        DynamicObject(QSharedPointer<DynamicType>, char *data);
 
-        bool isLittleEndian;
         bool ownsData;
         char *data;
         std::size_t size;
 
-        std::string typeName;
-        std::shared_ptr<std::map<std::string, FieldAccessor> > memberAccessors;
+        QString typeName;
+        QSharedPointer<QMap<QString, FieldAccessor> > memberAccessors;
     };
 }
 

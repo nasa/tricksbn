@@ -17,9 +17,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 INCLUDEPATH += \
     ../protobetter_dynamic_lib/include \
-    include \
-    /usr/include/jsoncpp \
-    /usr/include/libxml2
+    include
 
 SOURCES += \
     src/protobetter_generated.c \
@@ -34,14 +32,12 @@ HEADERS += \
 RESOURCES += \
     protobetter_test.qrc
 
-win32:CONFIG(release, debug|release): LIBS += -ljsoncpp -lxml2 -L$$OUT_PWD/../protobetter_dynamic_lib/release/ -lprotobetter_dynamic_lib
-else:win32:CONFIG(debug, debug|release): LIBS += -ljsoncpp -lxml2 -L$$OUT_PWD/../protobetter_dynamic_lib/debug/ -lprotobetter_dynamic_lib
-else:unix: LIBS += -ljsoncpp -lxml2 -L$$OUT_PWD/../protobetter_dynamic_lib/ -lprotobetter_dynamic_lib
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../protobetter_dynamic_lib/release/ -lprotobetter_dynamic_lib
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../protobetter_dynamic_lib/debug/ -lprotobetter_dynamic_lib
+else:unix: LIBS += -L$$OUT_PWD/../protobetter_dynamic_lib/ -lprotobetter_dynamic_lib
 
 # INCLUDEPATH += $$PWD/../protobetter_dynamic_lib/include
 DEPENDPATH += $$PWD/../protobetter_dynamic_lib
 
 QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN/../protobetter_dynamic_lib\'"
-
-QMAKE_POST_LINK += $$quote(cp -r $${PWD}/data $${OUT_PWD}/)
 
