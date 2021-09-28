@@ -91,24 +91,28 @@ QVariant TrickMemoryManagerClient::GetData(TrickFieldAccessor &accessor)
         case TrickFieldAccessor::Float:
         {
             float data = TrickCcsdsUtils::GetFloat(accessor.address);
+std::cerr << "trick_ccsds_memory_manager.cpp"<<":"<< __LINE__<< " - "<< __func__ << " data(f): " << data << std::endl;
             value.setValue(data);
             break;
         }
         case TrickFieldAccessor::Double:
         {
             double data = TrickCcsdsUtils::GetDouble(accessor.address);
+std::cerr << "trick_ccsds_memory_manager.cpp"<<":"<< __LINE__<< " - "<< __func__ << " data(lf): " << data << std::endl;
             value.setValue(data);
             break;
         }
         case TrickFieldAccessor::Int:
         {
             int64_t data = TrickCcsdsUtils::GetInt(accessor.address, accessor.size);
+std::cerr << "trick_ccsds_memory_manager.cpp"<<":"<< __LINE__<< " - "<< __func__ << " data(d): " << data << std::endl;
             value.setValue(data);
             break;
         }
         case TrickFieldAccessor::UInt:
         {
             uint64_t data = TrickCcsdsUtils::GetUInt(accessor.address, accessor.size);
+std::cerr << "trick_ccsds_memory_manager.cpp"<<":"<< __LINE__<< " - "<< __func__ << " data(ud): " << data << std::endl;
             value.setValue(data);
             break;
         }
@@ -141,10 +145,16 @@ void TrickMemoryManagerClient::SetData(TrickFieldAccessor &accessor, QVariant va
 
 int TrickMemoryManagerClient::ReadData(QCcsdsPacket *packetArray, int maxMessages)
 {
+std::cerr << "trick_ccsds_memory_manager.cpp"<<":"<< __LINE__<< " - "<< __func__ << std::endl;
     int messageCount = 0;
 
     for (int i = 0; i < this->mappings.size(); ++i)
     {
+        if (messageCount >= maxMessages)
+        {
+            return -1;
+        }
+
         if (this->mappings[i].flowDirection == 1 || this->mappings[i].flowDirection == 3)
         {
             int memberCount = this->mappings[i].ccsdsFieldNames.size();
@@ -157,16 +167,27 @@ int TrickMemoryManagerClient::ReadData(QCcsdsPacket *packetArray, int maxMessage
                 this->mappings[i].SetProtobetterField(j, data);
             }
 
+            packetArray[i].SetMessageId(this->mappings[i].messageId);
+
+            // NOTE not sure what this does, copied from SimulatedTrickBackend::ReadData -JWP
+            if (packetArray[i].GetPacketType() == QCcsdsPacket::Command &&
+                    this->mappings[i].commandCode >= 0)
+            {
+                packetArray[i].SetCommandCode(this->mappings[i].commandCode);
+            }
+            
+
+            //TODO experiment with this to make sure its doign what I think -JWP
+            auto currentObject = this->mappings[i].data;
+            packetArray[i].SetPayloadData(currentObject->Data(), currentObject->Size());
+            messageCount++;
+
             if (debug)
             {
-                // TODO: read back the data from the protobetter CCSDS packet
-                // and dump it to stdout for debugging purposes
+                //packetArray[i].PrintData();
             }
-
-            messageCount++;
         }
     }
-
     return messageCount;
 }
 

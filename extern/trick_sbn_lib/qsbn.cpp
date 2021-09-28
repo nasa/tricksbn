@@ -83,6 +83,20 @@ const char * QCcsdsPacket::GetPayloadData() const
     return this->data + this->GetHeaderLength();
 }
 
+void QCcsdsPacket::PrintData()
+{
+    for (uint16_t i=0; i<GetPacketLength(); i++) {
+        fprintf(stderr, "%02X ", GetPacketData()[i]);
+    }
+    fprintf(stderr, "\n");
+    fprintf(stderr, "MID: %d (%08X)\n", GetMessageId(), GetMessageId());
+    fprintf(stderr, "CC:  %d (%04X)\n", GetCommandCode(), GetCommandCode());
+    fprintf(stderr, "Packet Len:  %d (%04X)\n", GetPacketLength(), GetPacketLength());
+    fprintf(stderr, "Header Len:  %d (%04X)\n", GetHeaderLength(), GetHeaderLength());
+    fprintf(stderr, "Payload Len: %d (%04X)\n", GetPayloadLength(), GetPayloadLength());
+    fprintf(stderr, "\n");
+}
+
 QCcsdsPacket::PacketType QCcsdsPacket::GetPacketType() const
 {
     CFE_SB_MsgPtr_t msg = (CFE_SB_MsgPtr_t) this->data;
@@ -113,6 +127,12 @@ void QCcsdsPacket::SetCommandCode(const uint16_t cmdCode)
     CFE_SB_SetCmdCode((CFE_SB_MsgPtr_t) this->data, cmdCode);
 }
 
+void QCcsdsPacket::SetCpuId(const uint32_t cpuId)
+{
+    std::fprintf(stderr, "qsbn.cpp:Qccsds %d - %s %d\n", __LINE__, __func__, cpuId);
+    memset(&this->data[3], cpuId, sizeof(uint32_t));
+}
+
 void QCcsdsPacket::SetPacketData(const char *data, const uint16_t packetLength)
 {
     memcpy(this->data, data, packetLength);
@@ -120,6 +140,7 @@ void QCcsdsPacket::SetPacketData(const char *data, const uint16_t packetLength)
 
 void QCcsdsPacket::SetPayloadData(const char *data, const uint16_t length)
 {
+std::fprintf(stderr, "qsbn.cpp:Qccsds %d - %s Data:%X, Length: %d\n", __LINE__, __func__, data, length);
     CFE_SB_SetUserDataLength((CFE_SB_MsgPtr_t) this->data, length);
 
     if (length > 0)
@@ -221,6 +242,9 @@ void QSbnPacket::SetPacketData(const char *data, const uint16_t packetLength)
 
 void QSbnPacket::SetPayloadData(const char *data, const uint16_t payloadLength)
 {
+//std::cerr << "qsbn.cpp"<<":"<< __LINE__<< " - "<< __func__ << " data " << data << "Length: " << payloadLength<< std::endl;
+std::fprintf(stderr, "qsbn.cpp:QSbn %d - %s Data:%X, Length: %d\n", __LINE__, __func__, data[0], payloadLength);
+// This 7 must be header
     memcpy(this->data+7, data, payloadLength);
     qToBigEndian<quint16>(payloadLength, this->data);
 }
@@ -941,7 +965,9 @@ int QSbn::Send(QCcsdsPacket *msgQueue, int count)
         {
             int messageSize = msgQueue[i].GetPacketLength();
             const char *message = msgQueue[i].GetPacketData();
-
+            msgQueue[i].PrintData();
+            //msgQueue[i].SetCpuId(this->hostConfig[i].cpuId);
+            msgQueue[i].SetCpuId(13);
             for (size_t j = 0; j < this->peers.size(); ++j)
             {
                 int bytesSent = this->socket.writeDatagram(
@@ -967,6 +993,7 @@ int QSbn::Send(QCcsdsPacket *msgQueue, int count)
 
             QSbnPacket packet(this->hostConfig.cpuId, QSbnPacket::SBN_APP_MSG, payloadLength);
             packet.SetPayloadData(msgQueue[i].GetPacketData(), payloadLength);
+std::cerr << "qsbn.cpp"<<":"<< __LINE__<< " - "<< __func__ << " payloadLength: " << payloadLength << " mid: " << mid<< std::endl;
 
             for (size_t j = 0; j < this->peers.size(); ++j)
             {
@@ -976,6 +1003,13 @@ int QSbn::Send(QCcsdsPacket *msgQueue, int count)
                                 packet.GetPacketData(), packet.GetPacketLength(),
                                 this->peers[j].ipAddress,
                                 this->peers[j].port);
+                    for (uint16_t i=0; i<packet.GetPacketLength(); i++) {
+                        fprintf(stderr, "%02X ", packet.GetPacketData()[i]);
+                    }
+                    fprintf(stderr, "\n");
+                    fprintf(stderr, "length %02X", qFromBigEndian<quint16>(packet.GetPacketData()));
+                    fprintf(stderr, " length %02X", packet.GetPacketData());
+                    fprintf(stderr, "\n");
 
                     if (bytesSent < packet.GetPacketLength())
                     {
@@ -1000,27 +1034,3 @@ QSbn::Protocol QSbn::GetCurrentProtocol() const
 {
     return this->protocol;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

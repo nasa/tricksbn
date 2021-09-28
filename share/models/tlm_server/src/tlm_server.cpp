@@ -231,6 +231,10 @@ int TelemetryServer::initQsbn(std::string &config)
 void TelemetryServer::run()
 {
     // map data from QSbn to trick memory
+
+    int packetCount =0;
+    /*
+    // Commenting this out because it appears to be overwriting packetBuffer's size and other attributes which ruins the sending
     int packetCount = sbn->ProcessIncomingMessages(packetBuffer, packetBufferSize);
 
     for (int i = 0; i < packetCount; ++i)
@@ -242,6 +246,7 @@ void TelemetryServer::run()
             std::cout << "TRICK_SBN ERROR mapping data from QSbn to trick memory..." << std::endl;
         }
     }
+    */
 
     // map data from trick going out on QSbn
     packetCount = mappingClient->ReadData(packetBuffer, packetBufferSize);

@@ -51,6 +51,8 @@ INCLUDEPATH += \
     ../ccsds_header_lib/include \
     ../ccsds_header_lib/include/cfe \
     ../ccsds_header_lib/include/osal \
+    /usr/include/jsoncpp \
+    /usr/include/libxml2 \
     ../protobetter/protobetter_dynamic_lib/include
 
 unix {

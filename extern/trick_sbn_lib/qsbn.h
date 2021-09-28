@@ -63,9 +63,12 @@ public:
 
     void SetMessageId(const uint32_t messageId);
     void SetCommandCode(const uint16_t cmdCode);
+    void SetCpuId(const uint32_t cpuId);
 
     void SetPacketData(const char *data, const uint16_t packetLength);
     void SetPayloadData(const char *data, const uint16_t payloadLength);
+
+    void PrintData();
 
 private:
 

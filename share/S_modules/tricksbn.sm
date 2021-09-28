@@ -22,7 +22,7 @@ public:
     {
         ("initialization") io.init(configData);
 
-        (0.01, "scheduled") io.run();
+        (1.5, "scheduled") io.run();
 
         ("shutdown") io.shutdown();
     }

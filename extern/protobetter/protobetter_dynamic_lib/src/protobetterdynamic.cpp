@@ -1271,10 +1271,12 @@ void Protobetter::DynamicObject::SetFloat(const Protobetter::FieldAccessor &acce
     qToBigEndian<qint32>(unpackedValue, &packedValue);
 
     memcpy(this->data + accessor.byteOffset, &packedValue, 4);
+std::cerr << "protobetterdynamic.cpp"<<":"<< __LINE__<< " - "<< __func__ << " packedValue: " << packedValue << " byteoffset: "<< accessor.byteOffset<< std::endl;
 }
 
 void Protobetter::DynamicObject::SetFloat(QString memberName, float value)
 {
+std::cerr << "protobetterdynamic.cpp"<<":"<< __LINE__<< " - "<< __func__ << " memberName: " << memberName.toStdString() << " value: "<< value <<std::endl;
 #ifndef QT_NO_DEBUG
 
     if (!this->memberAccessors->contains(memberName))

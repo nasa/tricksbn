@@ -111,10 +111,13 @@ void TrickVariableMapping::SetProtobetterField(int memberIndex, QVariant &value)
 
         case Protobetter::Float:
             this->data->SetFloat(this->ccsdsFieldNames[memberIndex], value.toFloat());
+std::cerr << "trick_ccsds_mapping.cpp"<<":"<< __LINE__<< " - "<< __func__ << " value.toFloat: " << value.toFloat() << std::endl;
+std::cerr << "trick_ccsds_mapping.cpp"<<":"<< __LINE__<< " - "<< __func__ << " fieldName[]: " << this->ccsdsFieldNames[memberIndex].toStdString()  << std::endl;
             break;
 
         case Protobetter::Double:
             this->data->SetDouble(this->ccsdsFieldNames[memberIndex], value.toDouble());
+std::cerr << "trick_ccsds_mapping.cpp"<<":"<< __LINE__<< " - "<< __func__ << " value.toDouble: " << value.toDouble() << std::endl;
             break;
 
         default:
