@@ -140,7 +140,6 @@ void QCcsdsPacket::SetPacketData(const char *data, const uint16_t packetLength)
 
 void QCcsdsPacket::SetPayloadData(const char *data, const uint16_t length)
 {
-std::fprintf(stderr, "qsbn.cpp:Qccsds %d - %s Data:%X, Length: %d\n", __LINE__, __func__, data, length);
     CFE_SB_SetUserDataLength((CFE_SB_MsgPtr_t) this->data, length);
 
     if (length > 0)
@@ -243,8 +242,8 @@ void QSbnPacket::SetPacketData(const char *data, const uint16_t packetLength)
 void QSbnPacket::SetPayloadData(const char *data, const uint16_t payloadLength)
 {
 //std::cerr << "qsbn.cpp"<<":"<< __LINE__<< " - "<< __func__ << " data " << data << "Length: " << payloadLength<< std::endl;
-std::fprintf(stderr, "qsbn.cpp:QSbn %d - %s Data:%X, Length: %d\n", __LINE__, __func__, data[0], payloadLength);
-// This 7 must be header
+//std::fprintf(stderr, "qsbn.cpp:QSbn %d - %s Data:%X, Length: %d\n", __LINE__, __func__, data[0], payloadLength);
+// This 7 must be header length
     memcpy(this->data+7, data, payloadLength);
     qToBigEndian<quint16>(payloadLength, this->data);
 }
@@ -967,7 +966,7 @@ int QSbn::Send(QCcsdsPacket *msgQueue, int count)
             const char *message = msgQueue[i].GetPacketData();
             msgQueue[i].PrintData();
             //msgQueue[i].SetCpuId(this->hostConfig[i].cpuId);
-            msgQueue[i].SetCpuId(13);
+            //msgQueue[i].SetCpuId(13);
             for (size_t j = 0; j < this->peers.size(); ++j)
             {
                 int bytesSent = this->socket.writeDatagram(
@@ -1007,7 +1006,7 @@ std::cerr << "qsbn.cpp"<<":"<< __LINE__<< " - "<< __func__ << " payloadLength: "
                         fprintf(stderr, "%02X ", packet.GetPacketData()[i]);
                     }
                     fprintf(stderr, "\n");
-                    fprintf(stderr, "length %02X", qFromBigEndian<quint16>(packet.GetPacketData()));
+                    fprintf(stderr, "length (fromBigEndian) %02X", qFromBigEndian<quint16>(packet.GetPacketData()));
                     fprintf(stderr, " length %02X", packet.GetPacketData());
                     fprintf(stderr, "\n");
 

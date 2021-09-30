@@ -145,7 +145,6 @@ void TrickMemoryManagerClient::SetData(TrickFieldAccessor &accessor, QVariant va
 
 int TrickMemoryManagerClient::ReadData(QCcsdsPacket *packetArray, int maxMessages)
 {
-std::cerr << "trick_ccsds_memory_manager.cpp"<<":"<< __LINE__<< " - "<< __func__ << std::endl;
     int messageCount = 0;
 
     for (int i = 0; i < this->mappings.size(); ++i)

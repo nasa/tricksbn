@@ -1,14 +1,12 @@
 trick.real_time_enable()
-#trick.itimer_enable()
-#trick.var_server_set_port(17000)
 
-tricksbn.configData.tvmFileDir = "/users/jwpetti1/development/nexsys/tricksbn/demo2/apps/inc/tvm_files"
-tricksbn.configData.prototypeFileDir = "/users/jwpetti1/development/nexsys/tricksbn/demo2/apps/inc/tvm_files"
+tricksbn.configData.tvmFileDir = "../../apps/inc/tvm_files"
+tricksbn.configData.prototypeFileDir = "../../apps/inc/tvm_files"
 
 tricksbn.configData.qsbnJsonConfig = '''
 
 {
-    "protocol":"stream",
+    "protocol":"sbn_udp",
 
     "timeout":3000,
 
